@@ -50,7 +50,8 @@ class Group():
         self.group_id = group_id
         self.file_info = {}
 
-
+    def add_file(self, file_name, file_path):
+        self.file_info.push_back(File(file_name, file_path, self.group_id))
 
 class Service(LS_pb2_grpc.LockServerServicer):
     def __init__(self):
@@ -63,7 +64,55 @@ class Service(LS_pb2_grpc.LockServerServicer):
             os.mkdir(self.ROOT_PATH)
         print("[INIT] Lock Server is ready to serve.")
 
+        # load the existing group and file from tracker server
+        tracker_channel = grpc.insecure_channel(TrackerServer_IP + ':' + str(TrackerServer_PORT))
+        self.tracker_stub = TS_pb2_grpc.TrackerServerServiceStub(tracker_channel)
+        # now we can call the function offered by tracker server in the storage server by stub
+        print('[INIT] Connecting to Tracker Server successfully.')
+        self.load_file_info_from_tracker()
+
+       
+    def load_file_info_from_tracker(self):   
+        response = self.tracker_stub.GetGroupList(TS_pb2.GetGroupListRequest(""))
+        for group in response.groups:
+            group_ip = group.group_ip
+            newGroup = Group(group.group_id)
+            for file in group.files:
+                newGroup.add_file(file.file_name, file.file_path)
+            self.Group_INFO.push_back(newGroup)
+        print('[INIT] Loading group and file info from Tracker Server successfully.')
+        self.update_group_info_file()
     
+
+    def update_group_info_file(self):
+        with open(self.ROOT_PATH + self.FILE_NAME, 'w') as f:
+            f.write('GROUP_ID --- FILE_PATH --- FILE_NAME --- UPDATE_TIME\n')
+            for i in range(len(self.Group_INFO)):
+                for j in range(len(self.Group_INFO[i].file_info)):
+                    f.write(f'{self.Group_INFO[i].group_id} - {self.Group_INFO[i].file_info[j].file_path} - {self.Group_INFO[i].file_info[j].file_name} - {self.Group_INFO[i].file_info[j].update_time}\n')
+        print('[INFO] Updating group info file successfully.')
+
+    def update_lock_info_file(self):
+        with open(self.ROOT_PATH + self.LOCK_NAME, 'w') as f:
+            f.write('LOCK_ID --- USER_ID --- LOCK_TYPE --- LOCK_TIME --- FILE_PATH --- FILE_NAME\n')
+            for i in range(len(self.Group_INFO)):
+                for j in range(len(self.Group_INFO[i].file_info)):
+                    for k in range(len(self.Group_INFO[i].file_info[j].lock_info)):
+                        f.write(f'{self.Group_INFO[i].file_info[j].lock_info[k].lock_id} - {self.Group_INFO[i].file_info[j].lock_info[k].user_id} - {self.Group_INFO[i].file_info[j].lock_info[k].lock_type} - {self.Group_INFO[i].file_info[j].lock_info[k].lock_time} - {self.Group_INFO[i].file_info[j].file_path} - {self.Group_INFO[i].file_info[j].file_name}\n')
+        print('[INFO] Updating lock info file successfully.')
+    
+    def update_acl_info_file(self):
+        with open(self.ROOT_PATH + self.ACL_NAME, 'w') as f:
+            f.write('USER_ID --- FILE_PATH --- FILE_NAME --- READ --- WRITE --- DELETE\n')
+            for i in range(len(self.Group_INFO)):
+                for j in range(len(self.Group_INFO[i].file_info)):
+                    for k in range(len(self.Group_INFO[i].file_info[j].acl_info)):
+                        f.write(f'{self.Group_INFO[i].file_info[j].acl_info[k].user_id} - {self.Group_INFO[i].file_info[j].file_path} - {self.Group_INFO[i].file_info[j].file_name} - {self.Group_INFO[i].file_info[j].acl_info[k].read} - {self.Group_INFO[i].file_info[j].acl_info[k].write} - {self.Group_INFO[i].file_info[j].acl_info[k].delete}\n')
+        print('[INFO] Updating acl info file successfully.')
+
+    
+
+
     ##### proto service #####
     def AddGroup(self, request, context):
         for i in range(len(self.Group_INFO)):
@@ -72,6 +121,7 @@ class Service(LS_pb2_grpc.LockServerServicer):
                 return LS_pb2.AddGroupReply(status=0)
         self.Group_INFO.push_back(Group(request.group_id))
         print(f'[INFO] Group {request.group_id} is added.')
+        self.update_group_info_file()
         return LS_pb2.AddGroupReply(status=1)
     
     def AddFile(self, request, context):
@@ -86,6 +136,7 @@ class Service(LS_pb2_grpc.LockServerServicer):
                         return LS_pb2.AddFileReply(status=0)
                 self.Group_INFO[i].file_info.push_back(File(file_name, file_path, group_id))
                 print(f'[INFO] File {file_name} is added.')
+                self.update_group_info_file()
                 return LS_pb2.AddFileReply(status=1)
         print(f'[ERROR] Group {group_id} does not exist.')
         return LS_pb2.AddFileReply(status=0)
@@ -111,6 +162,7 @@ class Service(LS_pb2_grpc.LockServerServicer):
                                 return LS_pb2.AddACLReply(status=1)
                         self.Group_INFO[i].file_info[j].acl_info.push_back(ACL(user_id, read, write, delete))
                         print(f'[INFO] ACL of user {user_id} is added.')
+                        self.update_acl_info_file()
                         return LS_pb2.AddACLReply(status=1)
                 print(f'[ERROR] File {file_name} does not exist when add ACL')
                 return LS_pb2.AddACLReply(status=0)
@@ -131,6 +183,7 @@ class Service(LS_pb2_grpc.LockServerServicer):
                         if len(self.Group_INFO[i].file_info[j].lock_info) == 0:
                             self.Group_INFO[i].file_info[j].lock_info.push_back(Lock(0, user_id, lock_type, lock_time))
                             print(f'[INFO] Lock {lock_type} of user {user_id} is added.')
+                            self.update_lock_info_file()
                             return LS_pb2.LockReply(status=1)
                         else:
                             if lock_type == 0:
@@ -140,6 +193,7 @@ class Service(LS_pb2_grpc.LockServerServicer):
                                         return LS_pb2.LockReply(status=0)
                                 self.Group_INFO[i].file_info[j].lock_info.push_back(Lock(0, user_id, lock_type, lock_time))
                                 print(f'[INFO] Lock {lock_type} of user {user_id} is added.')
+                                self.update_lock_info_file()
                                 return LS_pb2.LockReply(status=1)
                             else:
                                 print(f'[ERROR] Lock of file {file_name} in path {file_path} already exist.')
@@ -162,6 +216,7 @@ class Service(LS_pb2_grpc.LockServerServicer):
                             if self.Group_INFO[i].file_info[j].lock_info[k].user_id == user_id:
                                 self.Group_INFO[i].file_info[j].lock_info.erase(k)
                                 print(f'[INFO] Lock of user {user_id} is removed.')
+                                self.update_lock_info_file()
                                 return LS_pb2.UnlockReply(status=1)
                         print(f'[ERROR] Lock of user {user_id} does not exist.')
                         return LS_pb2.UnlockReply(status=0)
@@ -170,4 +225,18 @@ class Service(LS_pb2_grpc.LockServerServicer):
         print(f'[ERROR] Group {group_id} does not exist when remove Lock')
         return LS_pb2.UnlockReply(status=0)
     
-                        
+
+def run():
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    LS_pb2_grpc.add_LockServiceServicer_to_server(Service(), server)
+    server.add_insecure_port('[::]:' + str(LockServer_PORT))
+    server.start()
+    print(f'[START] Lock Server is running on port {LockServer_PORT}')
+    try:
+        while True:
+            time.sleep(86400)
+    except KeyboardInterrupt:
+        server.stop(0)
+
+if __name__ == '__main__':
+    run()

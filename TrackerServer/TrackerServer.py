@@ -23,8 +23,9 @@ ip_address = socket.gethostbyname(hostname)
 
 
 class file_info:
-    def __init__(self, file_name, group_id):
+    def __init__(self, file_name, file_path, group_id):
         self.file_name = file_name
+        self.file_path = file_path
         self.group_id = group_id
         self.update_time = time.time()
 
@@ -61,6 +62,24 @@ class Servicer(TS_pb2_grpc.TrackerServerServiceServicer):
             if(group.group_id == g_id):
                 return True
         return False
+
+    # update server info into file
+    def update_server_info_file(self):
+        with open(self.root_path + self.SERVER_FILE_NAME, 'w') as f:
+            f.write('IP --- PORT --- GROUP_ID' + '\n')
+            for server in self.STORAGE_SERVER_INFO:
+                f.write(str(server.ip) + ' ' + str(server.port) + ' ' + str(server.group_id) + '\n')
+        print('[UPDATE SERVER INFO FILE] SUCCESS')
+
+    # update group info into file
+    def update_group_info_file(self):
+        with open(self.root_path + self.GROUP_FILE_NAME, 'w') as f:
+            f.write('GROUP_ID --- FILE_PATH --- FILE_NAME --- UPDATE_TIME\n')
+            for group in self.GROUP_INFO:
+                for file in group.file_info:
+                    f.write(str(file.group_id) + ' ' + file.file_path + ' ' + str(file.file_name) + ' ' + str(file.update_time) + '\n')
+        print('[UPDATE GROUP INFO FILE] SUCCESS')
+
 
     ##### proto service #####
 
@@ -116,26 +135,27 @@ class Servicer(TS_pb2_grpc.TrackerServerServiceServicer):
 
     # 4. get the file list of all groups
     def GetFileList(self, request, context):
-        group_ids = []
-        file_names = []
+        groups = []
         for group in self.GROUP_INFO:
-            file_name = ""
+            files = []
             for file in group.file_info:
-                print(f'[GET FILE LIST] GROUP: {file.group_id} FILE: {file.file_name} ')
-                file_name += file.file_name + " "
-            group_ids.append(group.group_id)
-            file_names.append(file_name)
-        return TS_pb2.GetFileListResponse(group_ids, file_names)
+                files.append(TS_pb2.File(file.file_name, file.file_path))
+            groups.append(TS_pb2.Group(group.group_id, files))
+        print('[GET FILE LIST] Success.')
+        return TS_pb2.GetFileListResponse(groups)
+
+
 
     # 5. update the file info
     def UpdateFileInfo(self, request, context):
         # update the file info
         file_name = request.filename
+        file_path = request.filepath
         group = request.group_id
         for i in range(len(self.GROUP_INFO)):
             if(self.GROUP_INFO[i].group_id == group):
                 for j in range(len(self.GROUP_INFO[i].file_info)):
-                    if(self.GROUP_INFO[i].file_info[j].file_name == file_name):
+                    if(self.GROUP_INFO[i].file_info[j].file_name == file_name) and (self.GROUP_INFO[i].file_info[j].file_path == file_path):
                         newTime = time.time()
                         self.GROUP_INFO[i].file_info[j].update_time = newTime
                         print(f'[UPDATE FILE] GROUP: {group} FILE: {file_name} TIME: {newTime}')
@@ -154,7 +174,7 @@ class Servicer(TS_pb2_grpc.TrackerServerServiceServicer):
                 return TS_pb2.UpdateFileInfoResponse(status = 1, time = time_str)
         
         newGroup = group_info(group)
-        newFile = file_info(file_name, group)
+        newFile = file_info(file_name, file_path, group)
         newGroup.file_info.append(newFile)
         self.GROUP_INFO.append(newGroup)
         print(f'[ADD GROUP] GROUP: {group}')
@@ -167,32 +187,20 @@ class Servicer(TS_pb2_grpc.TrackerServerServiceServicer):
     # 6. delete the file info
     def DeleteFile(self, request, context):
         file_name = request.filename
+        file_path = request.filepath
         group = request.group_id
         for i in range(len(self.GROUP_INFO)):
             if(self.GROUP_INFO[i].group_id == group):
                 for j in range(len(self.GROUP_INFO[i].file_info)):
-                    if(self.GROUP_INFO[i].file_info[j].file_name == file_name):
+                    if(self.GROUP_INFO[i].file_info[j].file_name == file_name and self.GROUP_INFO[i].file_info[j].file_path == file_path):
                         self.GROUP_INFO[i].file_info.pop(j)
-                        print(f'[DELETE FILE] GROUP: {group} FILE: {file_name}')
+                        print(f'[DELETE FILE] GROUP: {group} PATH: {file_path} FILE: {file_name}')
                         self.update_group_info_file()
                         return TS_pb2.DeleteFileResponse(status = 1)
         print(f'[DELETE FILE] ! GROUP: {group} FILE: {file_name} DO NOT EXIST')
         return TS_pb2.DeleteFileResponse(status = -1)
 
-    def update_server_info_file(self):
-        with open(self.root_path + self.SERVER_FILE_NAME, 'w') as f:
-            f.write('IP --- PORT --- GROUP_ID' + '\n')
-            for server in self.STORAGE_SERVER_INFO:
-                f.write(str(server.ip) + ' ' + str(server.port) + ' ' + str(server.group_id) + '\n')
-        print('[UPDATE SERVER INFO FILE] SUCCESS')
-
-    def update_group_info_file(self):
-        with open(self.root_path + self.GROUP_FILE_NAME, 'w') as f:
-            f.write('GROUP_ID --- FILE_NAME --- UPDATE_TIME\n')
-            for group in self.GROUP_INFO:
-                for file in group.file_info:
-                    f.write(str(file.group_id) + ' ' + str(file.file_name) + ' ' + str(file.update_time) + '\n')
-        print('[UPDATE GROUP INFO FILE] SUCCESS')
+    
                 
 
 def run():
