@@ -22,9 +22,10 @@ time_obj = datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S")
 epoch_time = time.mktime(time_obj.timetuple())
 
 
-path = '.'
-file_name = 'test.txt'
-with open(path + '/' + file_name, 'w') as f:
-    f.write('hello world\n')
-    f.write('hello world')
-
+import os
+for root, dirs, files in os.walk("."):
+    print(root)
+    print(dirs)
+    print()
+    for file in files:
+        print(file)

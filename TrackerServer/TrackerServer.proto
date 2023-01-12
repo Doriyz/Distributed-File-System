@@ -2,8 +2,6 @@ syntax = "proto3";
 
 service TrackerServerService {
     rpc AskFileOperation(AskFileOperationRequest) returns (AskFileOperationResponse) {}
-    // rpc TrackServer(TrackServerRequest) returns (TrackServerResponse) {}
-    // rpc GetGroup(GetGroupRequest) returns (GetGroupResponse) {}
     rpc GetFileList(GetFileListRequest) returns (GetFileListResponse) {}
     rpc UpdateFileInfo(UpdateFileInfoRequest) returns (UpdateFileInfoResponse) {}
     rpc Replicate(ReplicateRequest) returns (ReplicateResponse) {}
@@ -22,24 +20,6 @@ message AskFileOperationResponse {
     string ip = 2;
     string port = 3;
 }
-
-// message GetGroupRequest {
-//     string operation = 1; // null
-// }
-
-// message GetGroupResponse {
-//     repeated string group_id = 1;
-// }
-
-// message TrackServerRequest {
-//     string ip = 1;
-//     string port = 2;
-// }
-
-// message TrackServerResponse {
-//     string status = 1;
-// }
-
 
 message GetFileListRequest {
     string operation = 1; // null
@@ -62,13 +42,14 @@ message UpdateFileInfoResponse {
 
 message ReplicateRequest {
     string port = 1;
-    string id = 2;
+    string ip = 2;
 }
 
 message ReplicateResponse {
     // return the message with same group
-    string port = 1;
-    string ip = 2;
+    bool status = 1;
+    string port = 2;
+    string ip = 3;
 }
 
 message AddStorageServerRequest {

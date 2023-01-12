@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+service LockServer {
+    rpc Lock(LockRequest) returns (LockResponse) {}
+    rpc Unlock(UnlockRequest) returns (UnlockResponse) {}
+}
+
+message LockRequest {
+    string key = 1;
+    string value = 2;
+}
+
+message LockResponse {
+    bool success = 1;
+}
+
+message UnlockRequest {
+    string key = 1;
+    string value = 2;
+}
+
+message UnlockResponse {
+    bool success = 1;
+}

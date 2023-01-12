@@ -3,4 +3,6 @@
 # 2. record the ACL (aceess control list) of each file
 # 3. lock the file when client request
 # 4. unlock the file when client release
+# 5. communicate with tracker server to get the file list
+
 

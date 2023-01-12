@@ -2,6 +2,7 @@
 # 1. record the info of storage servers and file info according to group
 # 2. communicate with storage server to replicate file (from other storage server)
 # 3. communicate with client to send or receive file info, and assign storage server
+# 4. communicate with the lock server to pass the file list
 
 import socket
 import os
@@ -9,7 +10,6 @@ import time
 from datetime import datetime
 from setting import *
 from concurrent import futures
-import json
 
 import grpc
 import TrackerServer.TrackerServer_pb2 as TS_pb2
@@ -94,11 +94,11 @@ class Servicer(TS_pb2_grpc.TrackerServerServiceServicer):
                     # mark the requesting storage server initialed 
                     self.STORAGE_SERVER_INFO[index].init = 1
                     print('[REPLICATE] IP: {i.ip} PORT: {i.port} to IP: {request.ip} PORT: {request.port}')
-                    return TS_pb2.ReplicateResponse(i.port, i.ip)
+                    return TS_pb2.ReplicateResponse(1, i.port, i.ip)
             print('[REPLICATE] NULL to IP: {request.ip} PORT: {request.port}')
-            return TS_pb2.ReplicateResponse(-1, -1)
+            return TS_pb2.ReplicateResponse(0, -1, -1)
         print('[REPLICATE] ! IP: {request.ip} PORT: {request.port} DO NOT EXIST')
-        return TS_pb2.ReplicateResponse(-2, -2)
+        return TS_pb2.ReplicateResponse(0, -2, -2)
 
     # 3. answer to the client file operation ask
     def AskFileOperation(self, request, context):
