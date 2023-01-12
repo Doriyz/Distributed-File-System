@@ -3,11 +3,17 @@ syntax = "proto3";
 service LockServer {
     rpc Lock(LockRequest) returns (LockResponse) {}
     rpc Unlock(UnlockRequest) returns (UnlockResponse) {}
+    rpc AddGroup(AddGroupRequest) returns (AddGroupResponse) {}
+    rpc AddACL(AddACLRequest) returns (AddACLResponse) {}
+    rpc AddFile(AddFileRequest) returns (AddFileResponse) {}
 }
 
 message LockRequest {
-    string key = 1;
-    string value = 2;
+    string filename = 1;
+    string path = 2;
+    int32 group_id = 3;
+    int32 user_id = 4;
+    string lock_type = 5; // 0: read, 1: write 2: delete
 }
 
 message LockResponse {
@@ -15,10 +21,40 @@ message LockResponse {
 }
 
 message UnlockRequest {
-    string key = 1;
-    string value = 2;
+    string filename = 1;
+    string path = 2;
+    string group_id = 3;
 }
 
 message UnlockResponse {
     bool success = 1;
 }
+
+message AddGroupRequest {
+    int32 group_id = 1;
+}
+
+message AddGroupResponse {
+    bool success = 1;
+}
+
+message AddACLRequest {
+    string filename = 1;
+    string path = 2;
+    int32 group_id = 3;
+    int32 user_id = 4;
+    bool is_read = 5;
+    bool is_write = 6;
+    bool is_delete = 7;
+}
+
+message AddFileRequest {
+    string filename = 1;
+    string path = 2;
+    int32 group_id = 3;
+}
+
+message AddFileResponse {
+    bool success = 1;
+}
+
