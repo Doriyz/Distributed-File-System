@@ -2,48 +2,62 @@ syntax = "proto3";
 
 service TrackerServerService {
     rpc AskFileOperation(AskFileOperationRequest) returns (AskFileOperationResponse) {}
-    rpc Track(TrackRequest) returns (TrackResponse) {}
+    // rpc TrackServer(TrackServerRequest) returns (TrackServerResponse) {}
+    // rpc GetGroup(GetGroupRequest) returns (GetGroupResponse) {}
     rpc GetFileList(GetFileListRequest) returns (GetFileListResponse) {}
     rpc UpdateFileInfo(UpdateFileInfoRequest) returns (UpdateFileInfoResponse) {}
     rpc Replicate(ReplicateRequest) returns (ReplicateResponse) {}
     rpc AddStorageServer(AddStorageServerRequest) returns (AddStorageServerResponse) {}
+    rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse) {}
 }
 
 message AskFileOperationRequest {
     string operation = 1; 
     string filename = 2;
+    string group_id = 3;
 }
 
 message AskFileOperationResponse {
-    string ip = 1;
-    string port = 2;
-}
-
-message TrackRequest {
-    string ip = 1;
-    string port = 2;
-}
-
-message TrackResponse {
     string status = 1;
+    string ip = 2;
+    string port = 3;
 }
+
+// message GetGroupRequest {
+//     string operation = 1; // null
+// }
+
+// message GetGroupResponse {
+//     repeated string group_id = 1;
+// }
+
+// message TrackServerRequest {
+//     string ip = 1;
+//     string port = 2;
+// }
+
+// message TrackServerResponse {
+//     string status = 1;
+// }
 
 
 message GetFileListRequest {
-    string operation = 1;
+    string operation = 1; // null
 }
 
 message GetFileListResponse {
-    repeated string filename = 1;
+    repeated string group_id = 1;
+    repeated string filename = 2;
 }
 
 message UpdateFileInfoRequest {
-    string operation = 1;
-    string filename = 2;
+    string filename = 1;
+    string group_id = 2;
 }
 
 message UpdateFileInfoResponse {
-    string time = 1;
+    string status = 1;
+    string time = 2;
 }
 
 message ReplicateRequest {
@@ -65,5 +79,14 @@ message AddStorageServerRequest {
 }
 
 message AddStorageServerResponse {
+    string status = 1;
+}
+
+message DeleteFileRequest {
+    string filename = 1;
+    string group_id = 2;
+}
+
+message DeleteFileResponse {
     string status = 1;
 }

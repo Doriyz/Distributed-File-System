@@ -21,3 +21,10 @@ time_obj = datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S")
 # you can then convert the time_obj to seconds again
 epoch_time = time.mktime(time_obj.timetuple())
 
+
+path = '.'
+file_name = 'test.txt'
+with open(path + '/' + file_name, 'w') as f:
+    f.write('hello world\n')
+    f.write('hello world')
+

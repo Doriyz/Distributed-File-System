@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13TrackerServer.proto\">\n\x17\x41skFileOperationRequest\x12\x11\n\toperation\x18\x01 \x01(\t\x12\x10\n\x08\x66ilename\x18\x02 \x01(\t\"4\n\x18\x41skFileOperationResponse\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\"(\n\x0cTrackRequest\x12\n\n\x02ip\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\t\"\x1f\n\rTrackResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\"\'\n\x12GetFileListRequest\x12\x11\n\toperation\x18\x01 \x01(\t\"\'\n\x13GetFileListResponse\x12\x10\n\x08\x66ilename\x18\x01 \x03(\t\"<\n\x15UpdateFileInfoRequest\x12\x11\n\toperation\x18\x01 \x01(\t\x12\x10\n\x08\x66ilename\x18\x02 \x01(\t\"&\n\x16UpdateFileInfoResponse\x12\x0c\n\x04time\x18\x01 \x01(\t\",\n\x10ReplicateRequest\x12\x0c\n\x04port\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\t\"-\n\x11ReplicateResponse\x12\x0c\n\x04port\x18\x01 \x01(\t\x12\n\n\x02ip\x18\x02 \x01(\t\"`\n\x17\x41\x64\x64StorageServerRequest\x12\x10\n\x08group_id\x18\x01 \x01(\t\x12\n\n\x02ip\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\t\x12\x19\n\x11storage_server_id\x18\x04 \x01(\t\"*\n\x18\x41\x64\x64StorageServerResponse\x12\x0e\n\x06status\x18\x01 \x01(\t2\x8d\x03\n\x14TrackerServerService\x12I\n\x10\x41skFileOperation\x12\x18.AskFileOperationRequest\x1a\x19.AskFileOperationResponse\"\x00\x12(\n\x05Track\x12\r.TrackRequest\x1a\x0e.TrackResponse\"\x00\x12:\n\x0bGetFileList\x12\x13.GetFileListRequest\x1a\x14.GetFileListResponse\"\x00\x12\x43\n\x0eUpdateFileInfo\x12\x16.UpdateFileInfoRequest\x1a\x17.UpdateFileInfoResponse\"\x00\x12\x34\n\tReplicate\x12\x11.ReplicateRequest\x1a\x12.ReplicateResponse\"\x00\x12I\n\x10\x41\x64\x64StorageServer\x12\x18.AddStorageServerRequest\x1a\x19.AddStorageServerResponse\"\x00\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13TrackerServer.proto\"P\n\x17\x41skFileOperationRequest\x12\x11\n\toperation\x18\x01 \x01(\t\x12\x10\n\x08\x66ilename\x18\x02 \x01(\t\x12\x10\n\x08group_id\x18\x03 \x01(\t\"D\n\x18\x41skFileOperationResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\n\n\x02ip\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\t\"\'\n\x12GetFileListRequest\x12\x11\n\toperation\x18\x01 \x01(\t\"9\n\x13GetFileListResponse\x12\x10\n\x08group_id\x18\x01 \x03(\t\x12\x10\n\x08\x66ilename\x18\x02 \x03(\t\";\n\x15UpdateFileInfoRequest\x12\x10\n\x08\x66ilename\x18\x01 \x01(\t\x12\x10\n\x08group_id\x18\x02 \x01(\t\"6\n\x16UpdateFileInfoResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\x12\x0c\n\x04time\x18\x02 \x01(\t\",\n\x10ReplicateRequest\x12\x0c\n\x04port\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\t\"-\n\x11ReplicateResponse\x12\x0c\n\x04port\x18\x01 \x01(\t\x12\n\n\x02ip\x18\x02 \x01(\t\"`\n\x17\x41\x64\x64StorageServerRequest\x12\x10\n\x08group_id\x18\x01 \x01(\t\x12\n\n\x02ip\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\t\x12\x19\n\x11storage_server_id\x18\x04 \x01(\t\"*\n\x18\x41\x64\x64StorageServerResponse\x12\x0e\n\x06status\x18\x01 \x01(\t\"7\n\x11\x44\x65leteFileRequest\x12\x10\n\x08\x66ilename\x18\x01 \x01(\t\x12\x10\n\x08group_id\x18\x02 \x01(\t\"$\n\x12\x44\x65leteFileResponse\x12\x0e\n\x06status\x18\x01 \x01(\t2\x9c\x03\n\x14TrackerServerService\x12I\n\x10\x41skFileOperation\x12\x18.AskFileOperationRequest\x1a\x19.AskFileOperationResponse\"\x00\x12:\n\x0bGetFileList\x12\x13.GetFileListRequest\x1a\x14.GetFileListResponse\"\x00\x12\x43\n\x0eUpdateFileInfo\x12\x16.UpdateFileInfoRequest\x1a\x17.UpdateFileInfoResponse\"\x00\x12\x34\n\tReplicate\x12\x11.ReplicateRequest\x1a\x12.ReplicateResponse\"\x00\x12I\n\x10\x41\x64\x64StorageServer\x12\x18.AddStorageServerRequest\x1a\x19.AddStorageServerResponse\"\x00\x12\x37\n\nDeleteFile\x12\x12.DeleteFileRequest\x1a\x13.DeleteFileResponse\"\x00\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'TrackerServer_pb2', globals())
@@ -21,29 +21,29 @@ if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
   _ASKFILEOPERATIONREQUEST._serialized_start=23
-  _ASKFILEOPERATIONREQUEST._serialized_end=85
-  _ASKFILEOPERATIONRESPONSE._serialized_start=87
-  _ASKFILEOPERATIONRESPONSE._serialized_end=139
-  _TRACKREQUEST._serialized_start=141
-  _TRACKREQUEST._serialized_end=181
-  _TRACKRESPONSE._serialized_start=183
-  _TRACKRESPONSE._serialized_end=214
-  _GETFILELISTREQUEST._serialized_start=216
-  _GETFILELISTREQUEST._serialized_end=255
-  _GETFILELISTRESPONSE._serialized_start=257
-  _GETFILELISTRESPONSE._serialized_end=296
-  _UPDATEFILEINFOREQUEST._serialized_start=298
-  _UPDATEFILEINFOREQUEST._serialized_end=358
-  _UPDATEFILEINFORESPONSE._serialized_start=360
-  _UPDATEFILEINFORESPONSE._serialized_end=398
-  _REPLICATEREQUEST._serialized_start=400
-  _REPLICATEREQUEST._serialized_end=444
-  _REPLICATERESPONSE._serialized_start=446
-  _REPLICATERESPONSE._serialized_end=491
-  _ADDSTORAGESERVERREQUEST._serialized_start=493
-  _ADDSTORAGESERVERREQUEST._serialized_end=589
-  _ADDSTORAGESERVERRESPONSE._serialized_start=591
-  _ADDSTORAGESERVERRESPONSE._serialized_end=633
-  _TRACKERSERVERSERVICE._serialized_start=636
-  _TRACKERSERVERSERVICE._serialized_end=1033
+  _ASKFILEOPERATIONREQUEST._serialized_end=103
+  _ASKFILEOPERATIONRESPONSE._serialized_start=105
+  _ASKFILEOPERATIONRESPONSE._serialized_end=173
+  _GETFILELISTREQUEST._serialized_start=175
+  _GETFILELISTREQUEST._serialized_end=214
+  _GETFILELISTRESPONSE._serialized_start=216
+  _GETFILELISTRESPONSE._serialized_end=273
+  _UPDATEFILEINFOREQUEST._serialized_start=275
+  _UPDATEFILEINFOREQUEST._serialized_end=334
+  _UPDATEFILEINFORESPONSE._serialized_start=336
+  _UPDATEFILEINFORESPONSE._serialized_end=390
+  _REPLICATEREQUEST._serialized_start=392
+  _REPLICATEREQUEST._serialized_end=436
+  _REPLICATERESPONSE._serialized_start=438
+  _REPLICATERESPONSE._serialized_end=483
+  _ADDSTORAGESERVERREQUEST._serialized_start=485
+  _ADDSTORAGESERVERREQUEST._serialized_end=581
+  _ADDSTORAGESERVERRESPONSE._serialized_start=583
+  _ADDSTORAGESERVERRESPONSE._serialized_end=625
+  _DELETEFILEREQUEST._serialized_start=627
+  _DELETEFILEREQUEST._serialized_end=682
+  _DELETEFILERESPONSE._serialized_start=684
+  _DELETEFILERESPONSE._serialized_end=720
+  _TRACKERSERVERSERVICE._serialized_start=723
+  _TRACKERSERVERSERVICE._serialized_end=1135
 # @@protoc_insertion_point(module_scope)
