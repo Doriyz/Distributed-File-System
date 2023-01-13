@@ -3,40 +3,52 @@
 # 2. Communicate with the client to send or receive the file
 # 3. Communicate with the other storage servers to replicate the file
 
+import grpc
+import APIs.StorageServer_pb2 as SS_pb2
+import APIs.StorageServer_pb2_grpc as SS_pb2_grpc
+import APIs.TrackerServer_pb2 as TS_pb2
+import APIs.TrackerServer_pb2_grpc as TS_pb2_grpc
+
 import socket
-import os
 import time
 from datetime import datetime
-from setting import *
 from concurrent import futures
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from APIs.setting import *
+import shutil
 
-import grpc
-import StorageServer.StorageServer_pb2 as SS_pb2
-import StorageServer.StorageServer_pb2_grpc as SS_pb2_grpc
-import TrackerServer.TrackerServer_pb2 as TS_pb2
-import TrackerServer.TrackerServer_pb2_grpc as TS_pb2_grpc
-
+debug = True
 
 class Servicer(SS_pb2_grpc.StorageServerServicer):
-    def __init__(self, storage_server_id, ip, port, group_ip):
+    def __init__(self, storage_server_id, ip, port, group_id):
         self.storage_server_id = storage_server_id
-        self.ip = ip
+        self.ip = str(ip)
         self.port = port
-        self.group_ip = group_ip
+        self.group_id = group_id
         # build the directory to store server data
-        self.ROOT_PATH = '../DATA/StorageServer' + str(storage_server_id) +'/'        
+        self.ROOT_PATH = './DATA/'
         if not os.path.exists(self.ROOT_PATH):
             os.mkdir(self.ROOT_PATH)
+            print(f'[INIT] Directory created.')
+        else:
+            # delete the directory and rebuild it
+            shutil.rmtree(self.ROOT_PATH)
+            os.mkdir(self.ROOT_PATH)
+            print(f'[INIT] Directory recreated.')
+
+
         # connect to the tracker server
         tracker_channel = grpc.insecure_channel(TrackerServer_IP + ':' + str(TrackerServer_PORT))
-        self.tracker_stub = TS_pb2_grpc.TrackerServerServiceStub(tracker_channel)
+        self.tracker_stub = TS_pb2_grpc.TrackerServerStub(tracker_channel)
         # now we can call the function offered by tracker server in the storage server by stub
-        print('[INIT] Connecting to Tracker Server...')
-        response = self.tracker_stub.AddStorageServer(TS_pb2.AddStorageServerRequest(group_ip=group_ip,storage_server_id=storage_server_id, ip=ip, port=port))
+        print(f'[INIT] Successfully connected to Tracker Server.')
+        response = self.tracker_stub.AddStorageServer(TS_pb2.AddStorageServerRequest(group_id=self.group_id, port=self.port, ip=self.ip, storage_server_id=self.storage_server_id))
         if(response.status == 1):
-            print('[INIT] Connected to Tracker Server.')
+            print(f'[INIT] Connected to Tracker Server.')
         else:
-            print('[INIT] Failed to connect to Tracker Server!!!')
+            print(f'[INIT] Failed to connect to Tracker Server!!!')
         print("[INIT] Storage Server is ready to serve.")
 
         # replicate the file from other storage server
@@ -63,17 +75,17 @@ class Servicer(SS_pb2_grpc.StorageServerServicer):
                 if(response.status == 1):
                     with open(self.ROOT_PATH + file.path + file.filename, 'w') as f:
                         f.write(response.content)
-                    print("[REPLICATE] File {path}{file_name} replicated.")
+                    print(f"[REPLICATE] File {path}{file_name} replicated.")
                 else:
-                    print("[REPLICATE] File {path}{file_name} does not exist.")
+                    print(f"[REPLICATE] File {path}{file_name} does not exist.")
 
-    def PassUpdateInfo(self, filename, group_ip):
+    def PassUpdateInfo(self, filename, group_id, filepath = ''):
         # pass the update info to tracker server
-        response = self.tracker_stub.UpdateFileInfo(TS_pb2.UpdateFileInfoRequest(filename=filename, group_ip=group_ip))
+        # !!!!!!!!!!!!! this should be done on client
+        response = self.tracker_stub.UpdateFileInfo(TS_pb2.UpdateFileInfoRequest(filename=filename, group_id=group_id, filepath = filepath))
         if(response.status == 1):
             print(f'[PASS UPDATE INFO] File {filename} in tracker server updated.')
-            update_time = datetime.strptime(response.time, '%Y-%m-%d %H:%M:%S.%f')
-            update_time = time.mktime(update_time.timetuple())
+            update_time = response.time
             return update_time
 
 
@@ -84,13 +96,13 @@ class Servicer(SS_pb2_grpc.StorageServerServicer):
         content = request.content
         # check if the file exist
         if os.path.exists(self.ROOT_PATH + path + file_name):
-            print("[CREATE] File {path}{file_name} already exist.")
+            print(f"[CREATE] File {path}{file_name} already exist.")
             return SS_pb2.CreateResponse(status=0)
         # create the file
         with open(self.ROOT_PATH + path + file_name, 'w') as f:
             f.write(content)
-        print("[CREATE] File {path}{file_name} created.")
-        self.PassUpdateInfo(file_name, self.group_ip)
+        print(f"[CREATE] File {path}{file_name} created.")
+        # self.PassUpdateInfo(file_name, self.group_id, path)
         return SS_pb2.CreateResponse(status=1)
 
     def Delete(self, request, context):
@@ -103,7 +115,7 @@ class Servicer(SS_pb2_grpc.StorageServerServicer):
         # delete the file
         os.remove(self.ROOT_PATH + path + file_name)
         print("[DELETE] File {path}{file_name} deleted.")
-        request = self.tracker_stub.DeleteFile(self.tracker_stub.DeleteFileRequest(filename=file_name, group_ip=self.group_ip))
+        request = self.tracker_stub.DeleteFile(self.tracker_stub.DeleteFileRequest(filename=file_name, group_id=self.group_id))
         return SS_pb2.DeleteResponse(status=1)
 
 
@@ -138,7 +150,7 @@ class Servicer(SS_pb2_grpc.StorageServerServicer):
             with open(self.ROOT_PATH + path + file_name, 'w') as f:
                 f.write(content)
         print("[WRITE] File {path}{file_name} written.")
-        self.PassUpdateInfo(file_name, self.group_ip)
+        # self.PassUpdateInfo(file_name, self.group_id, path)
         return SS_pb2.WriteResponse(status=1)
 
     def GetFileList(self, request, context):
@@ -153,13 +165,18 @@ class Servicer(SS_pb2_grpc.StorageServerServicer):
 
 
 def run():
-    STORAGE_SERVER_ID = int(input('[INPUT] Please input the Storage server id'))
-    GROUP_IP = input('[INPUT] Please input the Group IP')
-    STORAGE_SERVER_PORT = int(input('[INPUT] Please input the Storage server port'))
+    if debug == 1:
+        STORAGE_SERVER_ID = 1
+        group_id = 1
+        STORAGE_SERVER_PORT = 5002
+    else:
+        STORAGE_SERVER_ID = int(input('[INPUT] Please input the Storage server id\n'))
+        group_id = int(input('[INPUT] Please input the Group IP\n'))
+        STORAGE_SERVER_PORT = int(input('[INPUT] Please input the Storage server port\n'))
     hostname = socket.gethostname()
     ip_address = socket.gethostbyname(hostname)
 
-    servicer = Servicer(STORAGE_SERVER_ID, ip_address, STORAGE_SERVER_PORT, GROUP_IP)
+    servicer = Servicer(STORAGE_SERVER_ID, ip_address, STORAGE_SERVER_PORT, group_id)
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     SS_pb2_grpc.add_StorageServerServicer_to_server(servicer, server)
     server.add_insecure_port('[::]:' + str(STORAGE_SERVER_PORT))

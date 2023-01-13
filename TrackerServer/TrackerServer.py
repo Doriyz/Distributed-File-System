@@ -4,17 +4,27 @@
 # 3. communicate with client to send or receive file info, and assign storage server
 # 4. communicate with the lock server to pass the file list
 
+
+
 import socket
-import os
-import time
+import time as tm
 from datetime import datetime
-from setting import *
 from concurrent import futures
+import os
+import sys
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import APIs.setting as setting
+
+TrackerServer_PORT = setting.TrackerServer_PORT
+TrackerServer_IP = setting.TrackerServer_IP
+LockServer_PORT = setting.LockServer_PORT
+LockServer_IP = setting.LockServer_IP
 
 import grpc
-import TrackerServer.TrackerServer_pb2 as TS_pb2
-import TrackerServer.TrackerServer_pb2_grpc as TS_pb2_grpc
-
+import APIs.TrackerServer_pb2 as TS_pb2
+import APIs.TrackerServer_pb2_grpc as TS_pb2_grpc
+import APIs.LockServer_pb2 as LS_pb2
+import APIs.LockServer_pb2_grpc as LS_pb2_grpc
 
 
 # TrackerServer_PORT = 5000
@@ -27,12 +37,12 @@ class file_info:
         self.file_name = file_name
         self.file_path = file_path
         self.group_id = group_id
-        self.update_time = time.time()
+        self.update_time = tm.time()
 
 class group_info:
     def __init__(self, group_id):
         self.group_id = group_id
-        self.file_info = {}
+        self.file_info = []
 
 class storage_server_info:
     def __init__(self, storage_server_id, ip, port, group_id):
@@ -42,18 +52,24 @@ class storage_server_info:
         self.group_id = group_id
         self.init = 0
 
+def timeTransfer(t):
+    # input:time.time()
+    # output: string
+    t_obj = datetime.fromtimestamp(t)
+    return t_obj.strftime('%Y-%m-%d %H:%M:%S')
 
-class Servicer(TS_pb2_grpc.TrackerServerServiceServicer):
+class Servicer(TS_pb2_grpc.TrackerServerServicer):
     def __init__(self):
-        self.GROUP_INFO = {}
-        self.FILE_INFO = {}
-        self.STORAGE_SERVER_INFO = {}
+        self.GROUP_INFO = []
+        self.FILE_INFO = []
+        self.STORAGE_SERVER_INFO = []
         # build the directory to store server data
-        self.ROOT_PATH = '../DATA/TrackerServer/'
+        self.ROOT_PATH = './'
         self.SERVER_FILE_NAME = 'server_info.txt'
         self.GROUP_FILE_NAME = 'group_info.txt'
-        if not os.path.exists(self.ROOT_PATH):
-            os.mkdir(self.ROOT_PATH)
+        if not os.path.exists('./DATA/'):
+            os.mkdir('./DATA/')
+            print(f'[INIT] Successfully build the tracker server data directory.')
         print("[INIT] Tracker Server is ready to serve.")
 
     # check if group exist by g_id
@@ -65,20 +81,21 @@ class Servicer(TS_pb2_grpc.TrackerServerServiceServicer):
 
     # update server info into file
     def update_server_info_file(self):
-        with open(self.root_path + self.SERVER_FILE_NAME, 'w') as f:
+        with open(self.ROOT_PATH + self.SERVER_FILE_NAME, 'w') as f:
             f.write('IP --- PORT --- GROUP_ID' + '\n')
             for server in self.STORAGE_SERVER_INFO:
                 f.write(str(server.ip) + ' ' + str(server.port) + ' ' + str(server.group_id) + '\n')
-        print('[UPDATE SERVER INFO FILE] SUCCESS')
+        print(f'[UPDATE SERVER INFO FILE] SUCCESS')
 
     # update group info into file
     def update_group_info_file(self):
-        with open(self.root_path + self.GROUP_FILE_NAME, 'w') as f:
+        with open(self.ROOT_PATH + self.GROUP_FILE_NAME, 'w') as f:
             f.write('GROUP_ID --- FILE_PATH --- FILE_NAME --- UPDATE_TIME\n')
             for group in self.GROUP_INFO:
                 for file in group.file_info:
-                    f.write(str(file.group_id) + ' ' + file.file_path + ' ' + str(file.file_name) + ' ' + str(file.update_time) + '\n')
-        print('[UPDATE GROUP INFO FILE] SUCCESS')
+                    update_time = timeTransfer(file.update_time)
+                    f.write(str(file.group_id) + ' ' + file.file_path + ' ' + str(file.file_name) + ' ' + update_time + '\n')
+        print(f'[UPDATE GROUP INFO FILE] Successful update group info file.')
 
 
     ##### proto service #####
@@ -86,12 +103,12 @@ class Servicer(TS_pb2_grpc.TrackerServerServiceServicer):
     # 1. add storage server info to tracker server
     def AddStorageServer(self, request, context):
         newStServer = storage_server_info(request.storage_server_id, request.ip, request.port, request.group_id)
-        self.STORAGE_SERVER_INFO.push_back(newStServer)
+        self.STORAGE_SERVER_INFO.append(newStServer)
         self.update_server_info_file()
 
-        if(self.check_group_ip(request.group_id)):
+        if(not self.check_group_ip(request.group_id)):
             newGroup = group_info(request.group_id)
-            self.GROUP_INFO.push_back(newGroup)
+            self.GROUP_INFO.append(newGroup)
             self.update_group_info_file()
             print(f"[ADD GROUP] GROUP_IP: {request.group_id}")
         print(f"[ADD STORAGE SERVER] IP: {request.ip} PORT: {request.port} GROUP_ID: {request.group_id}")
@@ -99,54 +116,79 @@ class Servicer(TS_pb2_grpc.TrackerServerServiceServicer):
 
     # 2. replicate the file to storage server in same group
     def Replicate(self, request, context):
-        group = -1
+        group_id = -1
         index = -1
         # get group ip from storage server info
         for i in self.STORAGE_SERVER_INFO:
             index += 1
             if(i.ip == request.ip and i.port == request.port):
-                group == i.group_id
+                group_id == i.group_id
                 break
-        if(group != -1):
+        if(group_id != -1):
             for i in self.STORAGE_SERVER_INFO:
-                if(i.group_id == group and i.init == 1):
+                if(i.group_id == group_id and i.init == 1):
                     # mark the requesting storage server initialed 
                     self.STORAGE_SERVER_INFO[index].init = 1
-                    print('[REPLICATE] IP: {i.ip} PORT: {i.port} to IP: {request.ip} PORT: {request.port}')
-                    return TS_pb2.ReplicateResponse(1, i.port, i.ip)
-            print('[REPLICATE] NULL to IP: {request.ip} PORT: {request.port}')
-            return TS_pb2.ReplicateResponse(0, -1, -1)
-        print('[REPLICATE] ! IP: {request.ip} PORT: {request.port} DO NOT EXIST')
-        return TS_pb2.ReplicateResponse(0, -2, -2)
+                    print(f'[REPLICATE] IP: {i.ip} PORT: {i.port} to IP: {request.ip} PORT: {request.port}')
+                    return TS_pb2.ReplicateResponse(status = 1, ip = str(i.ip), port = i.port)
+            print(f'[REPLICATE] NULL to IP: {request.ip} PORT: {request.port}')
+            return TS_pb2.ReplicateResponse(status = 0, ip = '-1', port = -1)
+        print(f'[REPLICATE] IP: {request.ip} PORT: {request.port} is the only storage server in the group')
+        self.STORAGE_SERVER_INFO[index].init = 1
+        return TS_pb2.ReplicateResponse(status = 0, ip = '-2', port = -2)
 
     # 3. answer to the client file operation ask
     def AskFileOperation(self, request, context):
         op = request.operation
         file_name = request.filename
-        group = request.group_id
-        # find the storage server
-        for server in self.STORAGE_SERVER_INFO:
-            if(server.group_id == group and server.init == 1):
-                ##### may ask to check if the server is alive #####
-                print('[ASK FILE OPERATION] IP: {server.ip} PORT: {server.port}')
-                return TS_pb2.AskFbeileOperationResponse(status = 1, ip = server.ip, port = server.port)
-        print('[ASK FILE OPERATION] ! NO STORAGE SERVER IN GROUP: {group}')
-        return TS_pb2.AskFileOperationResponse(-2, -2, -2)
+        request_group = request.group_id
+        file_path = request.path
+        # check if the file exist
+        for group in self.GROUP_INFO:
+            if(group.group_id == request_group):
+                if(not op == 'create'):
+                    for file in group.file_info:
+                        if(file.file_name == file_name and file.file_path == file_path):
+                            print(f'[ASK FILE OPERATION] FILE EXIST IN GROUP: {request_group}')
+                            # transfer the time to string
+                            update_time = timeTransfer(file.update_time)
 
-    # 4. get the file list of all groups
+                            # find the storage server
+                            for server in self.STORAGE_SERVER_INFO:
+                                if(server.group_id == request_group and server.init == 1):
+                                    ##### may ask to check if the server is alive #####
+                                    print(f'[ASK FILE OPERATION] IP: {server.ip} PORT: {server.port}')
+                                    return TS_pb2.AskFileOperationResponse(status = 1, ip = str(server.ip), port = server.port ,time = update_time)
+                            print(f'[ASK FILE OPERATION] ! NO STORAGE SERVER IN GROUP: {request_group}')
+                            return TS_pb2.AskFileOperationResponse(status = 0, ip = '-1', port = -1, time = "")
+                else:
+                    # set update_time as current local time
+                    update_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    # find the storage server
+                    for server in self.STORAGE_SERVER_INFO:
+                        if(server.group_id == request_group and server.init == 1):
+                            ##### may ask to check if the server is alive #####
+                            print(f'[ASK FILE OPERATION] IP: {server.ip} PORT: {server.port}')
+                            return TS_pb2.AskFileOperationResponse(status = 1, ip = str(server.ip), port = server.port ,time = update_time)
+                    print(f'[ASK FILE OPERATION] ! NO STORAGE SERVER IN GROUP: {request_group}')
+                    return TS_pb2.AskFileOperationResponse(status = 0, ip = '-1', port = -1, time = "")
+        print(f'[ASK FILE OPERATION] ! FILE NOT EXIST IN GROUP: {request_group}')
+        return TS_pb2.AskFileOperationResponse(status = 0, ip = '-2', port = -2, time = "")
+
+    # 4. get the file list of all groups from tracker server
     def GetFileList(self, request, context):
         groups = []
         for group in self.GROUP_INFO:
             files = []
             for file in group.file_info:
-                files.append(TS_pb2.File(file.file_name, file.file_path))
-            groups.append(TS_pb2.Group(group.group_id, files))
-        print('[GET FILE LIST] Success.')
-        return TS_pb2.GetFileListResponse(groups)
+                files.append(TS_pb2.File(file_name = file.file_name, file_path = file.file_path))
+            groups.append(TS_pb2.Group(group_id = group.group_id, files = files))
+        print(f'[GET FILE LIST] Success.')
+        return TS_pb2.GetFileListResponse(groups = groups)
 
 
 
-    # 5. update the file info
+    # 5. update the file info in tracker server
     def UpdateFileInfo(self, request, context):
         # update the file info
         file_name = request.filename
@@ -155,34 +197,29 @@ class Servicer(TS_pb2_grpc.TrackerServerServiceServicer):
         for i in range(len(self.GROUP_INFO)):
             if(self.GROUP_INFO[i].group_id == group):
                 for j in range(len(self.GROUP_INFO[i].file_info)):
-                    if(self.GROUP_INFO[i].file_info[j].file_name == file_name) and (self.GROUP_INFO[i].file_info[j].file_path == file_path):
-                        newTime = time.time()
+                    if(self.GROUP_INFO[i].file_info[j].file_name == file_name and self.GROUP_INFO[i].file_info[j].file_path == file_path):
+                        newTime = tm.time()
                         self.GROUP_INFO[i].file_info[j].update_time = newTime
+                        newTime = timeTransfer(newTime)
                         print(f'[UPDATE FILE] GROUP: {group} FILE: {file_name} TIME: {newTime}')
                         self.update_group_info_file()
                         # convert the time to string
-                        time_obj = datetime.fromtimestamp(newTime)
-                        time_str = time_obj.strftime("%Y-%m-%d %H:%M:%S")
-                        return TS_pb2.UpdateFileInfoResponse(status = 1, time = time_str)
-                newFile = file_info(file_name, group)
+                        return TS_pb2.UpdateFileInfoResponse(status = 1, time = newTime)
+                newFile = file_info(file_name, file_path, group)
                 self.GROUP_INFO[i].file_info.append(newFile)
-                print(f'[ADD FILE] GROUP: {group} FILE: {file_name} TIME: {newFile.update_time}')
+                print(f'[ADD FILE] GROUP: {group} FILE: {file_name} TIME: {timeTransfer(newFile.update_time)}')
                 self.update_group_info_file()
-                
-                time_obj = datetime.fromtimestamp(newFile.update_time)
-                time_str = time_obj.strftime("%Y-%m-%d %H:%M:%S")
-                return TS_pb2.UpdateFileInfoResponse(status = 1, time = time_str)
+                return TS_pb2.UpdateFileInfoResponse(status = 1, time = timeTransfer(newFile.update_time))
         
         newGroup = group_info(group)
         newFile = file_info(file_name, file_path, group)
         newGroup.file_info.append(newFile)
+        newTime = timeTransfer(newFile.update_time)
         self.GROUP_INFO.append(newGroup)
         print(f'[ADD GROUP] GROUP: {group}')
-        print(f'[ADD FILE] GROUP: {group} FILE: {file_name} TIME: {newFile.update_time}')
+        print(f'[ADD FILE] GROUP: {group} FILE: {file_name} TIME: {newTime}')
         self.update_group_info_file()
-        time_obj = datetime.fromtimestamp(newFile.update_time)
-        time_str = time_obj.strftime("%Y-%m-%d %H:%M:%S")
-        return TS_pb2.UpdateFileInfoResponse(status = 1, time = time_str)
+        return TS_pb2.UpdateFileInfoResponse(status = 1, time = newTime)
 
     # 6. delete the file info
     def DeleteFile(self, request, context):
@@ -206,16 +243,16 @@ class Servicer(TS_pb2_grpc.TrackerServerServiceServicer):
 def run():
     servicer = Servicer()
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    TS_pb2_grpc.add_TrackerServicer_to_server(servicer, server)
-    server.add_insecure_port('[::]:' + str(TrackerServer_PORT))
+    TS_pb2_grpc.add_TrackerServerServicer_to_server(servicer, server)
+    server.add_insecure_port('[::]:' + str(setting.TrackerServer_PORT))
     server.start()
-    print('[TRACKER SERVER] STARTED')
+    print(f'[START] Tracker server is running on port: ' + str(setting.TrackerServer_PORT))
     try:
         while True:
-            time.sleep(86400) # one day
+            tm.sleep(86400) # one day
     except KeyboardInterrupt:
         server.stop(0)
-        print('[TRACKER SERVER] STOPPED')
+        print(f'[TRACKER SERVER] STOPPED')
 
 
 if __name__ == '__main__':
