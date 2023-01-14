@@ -24,6 +24,9 @@ message UnlockRequest {
     string filename = 1;
     string path = 2;
     int32 group_id = 3;
+    int32 user_id = 4;
+    int32 lock_type = 5; // 0: read, 1: write 2: delete
+
 }
 
 message UnlockResponse {

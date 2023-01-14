@@ -64,7 +64,7 @@ class Servicer(TS_pb2_grpc.TrackerServerServicer):
         self.FILE_INFO = []
         self.STORAGE_SERVER_INFO = []
         # build the directory to store server data
-        self.ROOT_PATH = './'
+        self.ROOT_PATH = './DATA/'
         self.SERVER_FILE_NAME = 'server_info.txt'
         self.GROUP_FILE_NAME = 'group_info.txt'
         if not os.path.exists('./DATA/'):
@@ -193,35 +193,46 @@ class Servicer(TS_pb2_grpc.TrackerServerServicer):
         # update the file info
         file_name = request.filename
         file_path = request.filepath
-        group = request.group_id
+        new_group_ip = request.group_id
         for i in range(len(self.GROUP_INFO)):
-            if(self.GROUP_INFO[i].group_id == group):
+            if(self.GROUP_INFO[i].group_id == new_group_ip):
                 for j in range(len(self.GROUP_INFO[i].file_info)):
                     if(self.GROUP_INFO[i].file_info[j].file_name == file_name and self.GROUP_INFO[i].file_info[j].file_path == file_path):
                         newTime = tm.time()
                         self.GROUP_INFO[i].file_info[j].update_time = newTime
                         newTime = timeTransfer(newTime)
-                        print(f'[UPDATE FILE] GROUP: {group} FILE: {file_name} TIME: {newTime}')
+                        print(f'[UPDATE FILE] GROUP: {new_group_ip} FILE: {file_name} TIME: {newTime}')
                         self.update_group_info_file()
                         # convert the time to string
                         return TS_pb2.UpdateFileInfoResponse(status = 1, time = newTime)
-                newFile = file_info(file_name, file_path, group)
+                newFile = file_info(file_name, file_path, new_group_ip)
                 self.GROUP_INFO[i].file_info.append(newFile)
-                print(f'[ADD FILE] GROUP: {group} FILE: {file_name} TIME: {timeTransfer(newFile.update_time)}')
+                print(f'[ADD FILE] GROUP: {new_group_ip} FILE: {file_name} TIME: {timeTransfer(newFile.update_time)}')
                 self.update_group_info_file()
+
+                # add file in lock server
+                with grpc.insecure_channel(LockServer_IP + ':' + str(LockServer_PORT)) as channel:
+                    lock_stub = LS_pb2_grpc.LockServerStub(channel)
+                    response = lock_stub.AddFile(LS_pb2.AddFileRequest(filename=file_name, path = file_path, group_id=new_group_ip))
+                    if(response.status == 0):
+                        print("[ERROR] Fail to add the file in lock server.")
+                        return TS_pb2.UpdateFileInfoResponse(status = 0, time = timeTransfer(tm.time()))
+                    print("[INFO] Success to add the file in lock server.")
+
+
                 return TS_pb2.UpdateFileInfoResponse(status = 1, time = timeTransfer(newFile.update_time))
         
-        newGroup = group_info(group)
-        newFile = file_info(file_name, file_path, group)
+        newGroup = group_info(new_group_ip)
+        newFile = file_info(file_name, file_path, new_group_ip)
         newGroup.file_info.append(newFile)
         newTime = timeTransfer(newFile.update_time)
         self.GROUP_INFO.append(newGroup)
-        print(f'[ADD GROUP] GROUP: {group}')
-        print(f'[ADD FILE] GROUP: {group} FILE: {file_name} TIME: {newTime}')
+        print(f'[ADD GROUP] GROUP: {new_group_ip}')
+        print(f'[ADD FILE] GROUP: {new_group_ip} FILE: {file_name} TIME: {newTime}')
         self.update_group_info_file()
         return TS_pb2.UpdateFileInfoResponse(status = 1, time = newTime)
 
-    # 6. delete the file info
+    # 6. `delete` the file info
     def DeleteFile(self, request, context):
         file_name = request.filename
         file_path = request.filepath

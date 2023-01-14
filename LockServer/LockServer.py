@@ -54,8 +54,8 @@ class File():
         self.file_name = file_name
         self.file_path = file_path
         self.group_id = group_id
-        self.lock_info = {}
-        self.acl_info = {}
+        self.lock_info = []
+        self.acl_info = []
 
 
 class Group():
@@ -110,7 +110,7 @@ class Service(LS_pb2_grpc.LockServerServicer):
             f.write('GROUP_ID --- FILE_PATH --- FILE_NAME --- UPDATE_TIME\n')
             for i in range(len(self.Group_INFO)):
                 for j in range(len(self.Group_INFO[i].file_info)):
-                    f.write(f'{self.Group_INFO[i].group_id} - {self.Group_INFO[i].file_info[j].file_path} - {self.Group_INFO[i].file_info[j].file_name} - {self.Group_INFO[i].file_info[j].update_time}\n')
+                    f.write(f'{self.Group_INFO[i].group_id} - {self.Group_INFO[i].file_info[j].file_path} - {self.Group_INFO[i].file_info[j].file_name} \n')
         print(f'[INFO] Updating group info file successfully.')
 
     def update_lock_info_file(self):
@@ -139,28 +139,35 @@ class Service(LS_pb2_grpc.LockServerServicer):
         for i in range(len(self.Group_INFO)):
             if self.Group_INFO[i].group_id == request.group_id:
                 print(f'[ERROR] Group {request.group_id} already exist.')
-                return LS_pb2.AddGroupReply(status=0)
+                return LS_pb2.AddGroupRequest(status=0)
         self.Group_INFO.append(Group(request.group_id))
         print(f'[INFO] Group {request.group_id} is added.')
         self.update_group_info_file()
-        return LS_pb2.AddGroupReply(status=1)
+        return LS_pb2.AddGroupRequest(status=1)
     
     def AddFile(self, request, context):
         group_id = request.group_id
-        file_name = request.file_name
+        file_name = request.filename
         file_path = request.path
         for i in range(len(self.Group_INFO)):
             if self.Group_INFO[i].group_id == group_id:
                 for j in range(len(self.Group_INFO[i].file_info)):
                     if(self.Group_INFO[i].file_info[j].file_name == file_name and self.Group_INFO[i].file_info[j].file_path == file_path):
                         print(f'[ERROR] File {file_name} already exist.')
-                        return LS_pb2.AddFileReply(status=0)
+                        return LS_pb2.AddFileResponse(status=0)
+                        
                 self.Group_INFO[i].file_info.append(File(file_name, file_path, group_id))
                 print(f'[INFO] File {file_name} is added.')
                 self.update_group_info_file()
-                return LS_pb2.AddFileReply(status=1)
-        print(f'[ERROR] Group {group_id} does not exist.')
-        return LS_pb2.AddFileReply(status=0)
+                return LS_pb2.AddFileResponse(status=1)
+        print(f'[INFO] Group {group_id} does not exist.')
+        # add group
+        self.Group_INFO.append(Group(group_id))
+        print(f'[INFO] Group {group_id} is added.')
+        # add file in group
+        self.Group_INFO[len(self.Group_INFO)-1].file_info.append(File(file_name, file_path, group_id))
+        print(f'[INFO] File {file_name} is added.')
+        return LS_pb2.AddFileResponse(status=0)
 
     def AddACL(self, request, context):
         group_id = request.group_id
@@ -180,17 +187,18 @@ class Service(LS_pb2_grpc.LockServerServicer):
                                 self.Group_INFO[i].file_info[j].acl_info[k].read = read
                                 self.Group_INFO[i].file_info[j].acl_info[k].write = write
                                 self.Group_INFO[i].file_info[j].acl_info[k].delete = delete
-                                return LS_pb2.AddACLReply(status=1)
+                                return LS_pb2.AddACLResponse(status=1)
                         self.Group_INFO[i].file_info[j].acl_info.append(ACL(user_id, read, write, delete))
                         print(f'[INFO] ACL of user {user_id} is added.')
                         self.update_acl_info_file()
-                        return LS_pb2.AddACLReply(status=1)
+                        return LS_pb2.AddACLResponse(status=1)
                 print(f'[ERROR] File {file_name} does not exist when add ACL')
-                return LS_pb2.AddACLReply(status=0)
+                return LS_pb2.AddACLResponse(status=0)
         print(f'[ERROR] Group {group_id} does not exist when add ACL')
-        return LS_pb2.AddACLReply(status=0)
+        return LS_pb2.AddACLResponse(status=0)
 
     def Lock(self, request, context):
+        # lock type 0: read   lock type 1: write
         group_id = request.group_id
         file_name = request.filename
         file_path = request.path
@@ -229,16 +237,17 @@ class Service(LS_pb2_grpc.LockServerServicer):
         file_name = request.filename
         file_path = request.path
         user_id = request.user_id
+        lock_type = request.lock_type
         for i in range(len(self.Group_INFO)):
             if self.Group_INFO[i].group_id == group_id:
                 for j in range(len(self.Group_INFO[i].file_info)):
                     if self.Group_INFO[i].file_info[j].file_name == file_name and self.Group_INFO[i].file_info[j].file_path == file_path:
                         for k in range(len(self.Group_INFO[i].file_info[j].lock_info)):
                             if self.Group_INFO[i].file_info[j].lock_info[k].user_id == user_id:
-                                self.Group_INFO[i].file_info[j].lock_info.erase(k)
+                                self.Group_INFO[i].file_info[j].lock_info.pop(k)
                                 print(f'[INFO] Lock of user {user_id} is removed.')
                                 self.update_lock_info_file()
-                                return LS_pb2.UnLockResponse(status=1)
+                                return LS_pb2.UnlockResponse(status=1)
                         print(f'[ERROR] Lock of user {user_id} does not exist.')
                         return LS_pb2.UnLockResponse(status=0)
                 print(f'[ERROR] File {file_name} does not exist when remove Lock')

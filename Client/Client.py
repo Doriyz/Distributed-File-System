@@ -49,7 +49,7 @@ def is_cashe_hit(group_id, file_path, file_name, cashe_info):
             return file_info.update_time
     return ""
 
-def update_cashed_file(group_id, file_path, file_name, update_time,cashe_info, content = ""):
+def update_cashed_file(group_id, file_path, file_name, update_time, content , cashe_info):
     for i in range(len(cashe_info)):
         if(cashe_info[i].group_id == group_id and cashe_info[i].file_path == file_path and cashe_info[i].file_name == file_name):
             cashe_info[i].update_time = update_time
@@ -96,14 +96,14 @@ def run():
     ROOT_PATH = './DATA/Client' + str(user_id) + '/' # also the path for data
     CASHE_PATH = 'cashe/' # actually should be hidden to user
     if os.path.exists(ROOT_PATH):
-        shutil.rmtree(ROOT_PATH + CASHE_PATH)
-        print(f'[INIT] Remove the old client cashe directory.')
-        os.mkdir(ROOT_PATH + CASHE_PATH)
-    else:
-        os.mkdir(ROOT_PATH)
-        os.mkdir(ROOT_PATH + CASHE_PATH)
-        print(f'[INIT] Client data directory is created.')
- 
+        shutil.rmtree(ROOT_PATH)
+        print(f'[INIT] Remove the old client datat directory.')
+        
+    
+    os.mkdir(ROOT_PATH)
+    os.mkdir(ROOT_PATH + CASHE_PATH)
+    print(f'[INIT] Client data directory is created.')
+
 
     Cashe_Info = [] # list of FileInfo
 
@@ -173,7 +173,7 @@ def run():
                         # get the storsage server info from tracker server
                         response = stub.AskFileOperation(TS_pb2.AskFileOperationRequest(filename=file_name, group_id=group_id, operation=operation, path = file_path))
                         if(response.status == 0):
-                            print("[ERROR] Fail to get the storage server info.")
+                            print("[ERROR] Request op in tracker server failed.")
                             continue
                         ss_ip = response.ip
                         ss_port = response.port
@@ -204,9 +204,9 @@ def run():
                                         create_cashed_file(group_id, file_path, file_name, content,update_time, Cashe_Info)
                                         continue
                                     else:
-                                        print(f'[ERROR] Fail to update file info in tracker server.')
+                                        print(f'[ERROR] Fail in tracker server')
                                 else:
-                                    print(f'[ERROR] Fail to create the file in storage server')
+                                    print(f'[ERROR] File has exist in storage server.')
                                 continue
                             
 
@@ -231,7 +231,7 @@ def run():
 
                         # if read, cashe hit and file is the latest, read from cashe 
                         if operation == 'read':
-                            time = is_cashe_hit(group_id, file_path, file_name, update_time)
+                            time = is_cashe_hit(group_id, file_path, file_name, update_time, Cashe_Info)
                             if time == update_time:
                                 print(f'[INFO] Cashe hit.')
                                 print(f'[INFO] Read the file from cashe.')
@@ -257,35 +257,35 @@ def run():
                                     if time != "":
                                         with open(join(ROOT_PATH + file_path, file_name), 'w') as f:
                                             f.write(response.content)
-                                            update_cashed_file(group_id, file_path, file_name, update_time, response.content)
+                                            update_cashed_file(group_id, file_path, file_name, update_time, response.content, Cashe_Info)
                                 else:
                                     print(f'[ERROR] Fail to read the file.')
 
                             elif operation == 'write':
-                                content = input('[INFO] Please input the content you want to write:')
-                                response = storage_stub.Write(SS_pb2.WriteRequest(filename=file_name, content=content, path = file_path, group_id=group_id))
+                                content = input('[INFO] Please input the content you want to write:\n')
+                                response = storage_stub.Write(SS_pb2.WriteRequest(filename=file_name, content=content, path = file_path, mode = 0))
                                 if(response.status == 1):
                                     print(f'[INFO] Write the file to storage server.')
                                     # update in tracker server
-                                    response = stub.UpdateFileInfo(TS_pb2.UpdateFileInfoRequest(filename=file_name, path = file_path, group_id=group_id))
+                                    response = stub.UpdateFileInfo(TS_pb2.UpdateFileInfoRequest(filename=file_name, filepath = file_path, group_id=group_id))
                                     if(response.status == 1):
                                         print(f'[INFO] Successfully update file info in tracker server.')
                                         update_time = response.time
                                         # update the cashe
                                         with open(join(ROOT_PATH + file_path, file_name), 'w') as f:
                                             f.write(content)
-                                            update_cashed_file(group_id, file_path, file_name, update_time, content)
+                                            update_cashed_file(group_id, file_path, file_name, update_time, content, Cashe_Info)
                                     else:
                                         print(f'[ERROR] Fail to update file info in tracker server.')
                                 else:
                                     print(f'[ERROR] Fail to write the file.')
 
                             elif operation == 'delete':
-                                response = storage_stub.Delete(SS_pb2.DeleteRequest(filename=file_name, path = file_path, group_id=group_id))
+                                response = storage_stub.Delete(SS_pb2.DeleteRequest(filename=file_name, path = file_path, group_id = group_id))
                                 if(response.status == 1):
                                     print(f'[INFO] Delete the file from storage server.')
                                     # delete the cashe
-                                    delete_cashed_file(group_id, file_path, file_name)
+                                    delete_cashed_file(group_id, file_path, file_name, Cashe_Info)
                                     # delete in tracker server
                                     response = stub.DeleteFile(TS_pb2.DeleteFileRequest(filename=file_name, path = file_path, group_id=group_id))
                                     if(response.status == 1):
@@ -302,7 +302,7 @@ def run():
                         # release the lock
                         with grpc.insecure_channel(LockServer_IP + ':' + str(LockServer_PORT)) as channel:
                             lock_stub = LS_pb2_grpc.LockServerStub(channel)
-                            response = lock_stub.ReleaseLock(LS_pb2.ReleaseLockRequest(filename=file_name, operation=operation, path = file_path, group_id=group_id, user_id = user_id))
+                            response = lock_stub.Unlock(LS_pb2.UnlockRequest(filename=file_name, path = file_path, group_id=group_id, user_id = user_id, lock_type = lock_type))
                             if(response.status == 1):
                                 print("[INFO] Successfully release the lock.")
                             else:
