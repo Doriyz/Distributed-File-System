@@ -19,7 +19,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from APIs.setting import *
 import shutil
 
-debug = True
+debug = False
 
 class Servicer(SS_pb2_grpc.StorageServerServicer):
     def __init__(self, storage_server_id, ip, port, group_id):
@@ -75,9 +75,9 @@ class Servicer(SS_pb2_grpc.StorageServerServicer):
                 if(response.status == 1):
                     with open(self.ROOT_PATH + file.path + file.filename, 'w') as f:
                         f.write(response.content)
-                    print(f"[REPLICATE] File {path}{file_name} replicated.")
+                    print(f"[REPLICATE] File {file.path}{file.file_name} replicated.")
                 else:
-                    print(f"[REPLICATE] File {path}{file_name} does not exist.")
+                    print(f"[REPLICATE] File {file.path}{file.file_name} does not exist.")
 
     def PassUpdateInfo(self, filename, group_id, filepath = ''):
         # pass the update info to tracker server
@@ -87,6 +87,30 @@ class Servicer(SS_pb2_grpc.StorageServerServicer):
             print(f'[PASS UPDATE INFO] File {filename} in tracker server updated.')
             update_time = response.time
             return update_time
+
+    # temp
+    def op_file_in_copy(self, path, file_name, content, op):
+        # add operation to the storage server with same group_id
+        # get the other storage server info from tracker server
+        response = self.tracker_stub.GetStorageServer(TS_pb2.GetStorageServerRequest(group_id=self.group_id, port=self.port, ip=self.ip))
+        if(response.status == 0):
+            print(f"[{op}] No other storage server to replicate to.")
+        else:
+            # connect to the other storage server
+            storage_channel = grpc.insecure_channel(response.ip + ':' + str(response.port))
+            storage_stub = SS_pb2_grpc.StorageServerServiceStub(storage_channel)
+            # replicate the file to the other storage server
+            if(op == 'CREATE'):
+                response = storage_stub.Create(SS_pb2.CreateRequest(path=path, filename=file_name, content=content))
+            elif(op == 'DELETE'):
+                response = storage_stub.Delete(SS_pb2.DeleteRequest(path=path, filename=file_name))
+            elif(op == 'UPDATE'):
+                response = storage_stub.Update(SS_pb2.UpdateRequest(path=path, filename=file_name, content=content))
+            if(response.status == 1):
+                print(f"[{op}] File {path}{file_name} replicated.")
+            else:
+                print(f"[{op}] File {path}{file_name} does not exist.")
+        
 
 
     ##### proto service #####

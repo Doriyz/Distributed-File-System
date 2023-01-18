@@ -8,11 +8,6 @@ service LockServer {
     rpc AddFile(AddFileRequest) returns (AddFileResponse) {}
 }
 
-
-message testReplay {
-    string status = 1;
-}
-
 message LockRequest {
     string filename = 1;
     string path = 2;

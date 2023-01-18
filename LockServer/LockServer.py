@@ -197,6 +197,33 @@ class Service(LS_pb2_grpc.LockServerServicer):
         print(f'[ERROR] Group {group_id} does not exist when add ACL')
         return LS_pb2.AddACLResponse(status=0)
 
+    # temp
+    def checkACLbeforeLock(self, request, context):
+        # check if user has permission to lock file
+        group_id = request.group_id
+        file_name = request.filename
+        file_path = request.path
+        user_id = request.user_id
+        lock_type = request.lock_type
+        for i in range(len(self.Group_INFO)):
+            if self.Group_INFO[i].group_id == group_id:
+                for j in range(len(self.Group_INFO[i].file_info)):
+                    if self.Group_INFO[i].file_info[j].file_name == file_name and self.Group_INFO[i].file_info[j].file_path == file_path:
+                        for k in range(len(self.Group_INFO[i].file_info[j].acl_info)):
+                            if self.Group_INFO[i].file_info[j].acl_info[k].user_id == user_id:
+                                if lock_type == 0 and self.Group_INFO[i].file_info[j].acl_info[k].read == 1:
+                                    return True
+                                elif lock_type == 1 and self.Group_INFO[i].file_info[j].acl_info[k].write == 1:
+                                    return True
+                                else:
+                                    return False
+                        return False
+                return False
+        return False
+
+        
+
+
     def Lock(self, request, context):
         # lock type 0: read   lock type 1: write
         group_id = request.group_id
@@ -205,6 +232,7 @@ class Service(LS_pb2_grpc.LockServerServicer):
         user_id = request.user_id
         lock_type = request.lock_type
         lock_time = time.time()
+
         for i in range(len(self.Group_INFO)):
             if self.Group_INFO[i].group_id == group_id:
                 for j in range(len(self.Group_INFO[i].file_info)):

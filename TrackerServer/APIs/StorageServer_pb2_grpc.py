@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import APIs.StorageServer_pb2 as StorageServer__pb2
+import StorageServer_pb2 as StorageServer__pb2
 
 
 class StorageServerStub(object):
