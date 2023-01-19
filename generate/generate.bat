@@ -18,9 +18,9 @@ echo A | xcopy "E:\Repositories\College\Homework\DistributedSystem\Final-Project
 
 echo A | xcopy "E:\Repositories\College\Homework\DistributedSystem\Final-Project\Distributed-File-System\generate\APIs" "E:\Repositories\College\Homework\DistributedSystem\Final-Project\Distributed-File-System\LockServer\APIs"
 
-echo A | xcopy "E:\Repositories\College\Homework\DistributedSystem\Final-Project\Distributed-File-System\generate\APIs" "E:\Repositories\College\Homework\DistributedSystem\Final-Project\Distributed-File-System\LockServer\APIs"
+echo A | xcopy "E:\Repositories\College\Homework\DistributedSystem\Final-Project\Distributed-File-System\generate\APIs" "E:\Repositories\College\Homework\DistributedSystem\Final-Project\Distributed-File-System\TrackerServer\APIs"
 
-echo A | xcopy "E:\Repositories\College\Homework\DistributedSystem\Final-Project\Distributed-File-System\generate\APIs" "E:\Repositories\College\Homework\DistributedSystem\Final-Project\Distributed-File-System\LockServer\APIs"
+echo A | xcopy "E:\Repositories\College\Homework\DistributedSystem\Final-Project\Distributed-File-System\generate\APIs" "E:\Repositories\College\Homework\DistributedSystem\Final-Project\Distributed-File-System\StorageServer\APIs"
 
 echo copy API files
 

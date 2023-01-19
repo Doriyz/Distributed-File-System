@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import LockServer_pb2 as LockServer__pb2
+import APIs.LockServer_pb2 as LockServer__pb2
 
 
 class LockServerStub(object):
