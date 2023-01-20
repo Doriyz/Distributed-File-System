@@ -3,65 +3,74 @@ syntax = "proto3";
 service LockServer {
     rpc Lock(LockRequest) returns (LockResponse) {}
     rpc Unlock(UnlockRequest) returns (UnlockResponse) {}
-    rpc AddGroup(AddGroupRequest) returns (AddGroupResponse) {}
+    // rpc AddGroup(AddGroupRequest) returns (AddGroupResponse) {}
     rpc AddACL(AddACLRequest) returns (AddACLResponse) {}
     rpc AddFile(AddFileRequest) returns (AddFileResponse) {}
+    // rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse) {} // this is include when unlocked
+    rpc HeartBeat(HeartBeatRequest) returns (HeartBeatResponse) {} // called by tracker server to check if storage server is still working
 }
 
 message LockRequest {
-    string filename = 1;
-    string path = 2;
-    int32 group_id = 3;
-    int32 user_id = 4;
-    int32 lock_type = 5; // 0: read, 1: write 2: delete
+    int32 user_id = 1;
+    int32 group_id = 2;
+    string file_name = 3;
+    int32 lock_type = 4; // 0: read, 1: write 2: delete(delete file when unlocked)
 }
 
 message LockResponse {
     bool status = 1;
+    string msg = 2;
 }
 
 message UnlockRequest {
-    string filename = 1;
-    string path = 2;
-    int32 group_id = 3;
-    int32 user_id = 4;
-    int32 lock_type = 5; // 0: read, 1: write 2: delete
-
+    int32 user_id = 1;
+    int32 group_id = 2;
+    string file_name = 3;
+    int32 lock_type = 4; // 0: read, 1: write 2: delete(delete file when unlocked)
 }
 
 message UnlockResponse {
     bool status = 1;
+    string msg = 2;
 }
 
-message AddGroupRequest {
-    int32 group_id = 1;
-}
+// message AddGroupRequest {
+//     int32 group_id = 1;
+// }
 
-message AddGroupResponse {
-    bool status = 1;
-}
+// message AddGroupResponse {
+//     bool status = 1;
+// }
 
 message AddACLRequest {
-    string filename = 1;
-    string path = 2;
-    int32 group_id = 3;
-    int32 user_id = 4;
-    bool is_read = 5;
-    bool is_write = 6;
-    bool is_delete = 7;
+    int32 user_id = 1;
+    int32 group_id = 2;
+    string file_name = 3;
+    bool is_read = 4;
+    bool is_write = 5;
+    bool is_delete = 6;
+
 }
 
 message AddACLResponse {
     bool status = 1;
+    string msg = 2;
 }
 
 message AddFileRequest {
-    string filename = 1;
-    string path = 2;
-    int32 group_id = 3;
+    int32 user_id = 1;
+    int32 group_id = 2;
+    string file_name = 3;
 }
 
 message AddFileResponse {
     bool status = 1;
+    string msg = 2;
 }
 
+
+message HeartBeatRequest {
+}
+
+message HeartBeatResponse {
+}

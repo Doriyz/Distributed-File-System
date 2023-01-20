@@ -2,87 +2,138 @@ syntax = "proto3";
 
 package TrackerServer;
 
+// tracker server inly provide the service of add user, delete user, add storage server, delete storage server, heartbeat, ask file operation, get file list, update file info, replicate, add storage server, delete file
+
 service TrackerServer {
-    rpc AskFileOperation(AskFileOperationRequest) returns (AskFileOperationResponse) {}
-    rpc GetFileList(GetFileListRequest) returns (GetFileListResponse) {}
-    rpc UpdateFileInfo(UpdateFileInfoRequest) returns (UpdateFileInfoResponse) {}
-    rpc Replicate(ReplicateRequest) returns (ReplicateResponse) {}
-    rpc AddStorageServer(AddStorageServerRequest) returns (AddStorageServerResponse) {}
-    rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse) {}
+    rpc AddUser(AddUserRequest) returns (AddUserResponse) {} 
+    // user send a initialize request and get a group id
+    
+    rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {} 
+    // delete user in the recorded user list
+
+    rpc AddServer(AddServerRequest) returns (AddServerResponse) {} 
+    // get the group id and add storage server, return the server info with same group id 
+    
+    // rpc HeartBeat(HeartBeatRequest) returns (HeartBeatResponse) {}  // this should be in the storage server side
+    // delete storage server will be carry out when the shutdown is detected by heartbeat 
+
+    // rpc AskFileOperation(AskFileOperationRequest) returns (AskFileOperationResponse) {}
+
+    // rpc GetFileList(GetFileListRequest) returns (GetFileListResponse) {}
+    
+    // rpc UpdateFileInfo(UpdateFileInfoRequest) returns (UpdateFileInfoResponse) {}
+    // rpc Replicate(ReplicateRequest) returns (ReplicateResponse) {}
+    // rpc AddStorageServer(AddStorageServerRequest) returns (AddStorageServerResponse) {}
+    // rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse) {}
 }
 
-message AskFileOperationRequest {
-    string operation = 1; 
-    string filename = 2;
-    int32 group_id = 3;
-    string path = 4;
+message AddUserRequest {
+    int32 group_ip = 1;
 }
 
-message AskFileOperationResponse {
+message AddUserResponse {
     bool status = 1;
-    string ip = 2;
-    int32 port = 3;
-    string time = 4;
+    int32 user_id = 2; // user_id is allocated by the tracker server
+    string msg = 3; // statement about the status; this is for debug
 }
 
-message GetFileListRequest {
-    string operation = 1; // null
+message DeleteUserRequest {
+    int32 user_id = 1;
 }
 
-message File {
-    string file_name = 1;
-    string file_path = 2;
-}
-
-message Group {
-    int32 group_id = 1;
-    repeated File files = 2;
-}
-
-message GetFileListResponse {
-    repeated Group groups = 1;
-}
-
-message UpdateFileInfoRequest {
-    string filename = 1;
-    int32 group_id = 2;
-    string filepath = 3;
-}
-
-message UpdateFileInfoResponse {
+message DeleteUserResponse {
     bool status = 1;
-    string time = 2;
+    string msg = 2;
 }
 
-message ReplicateRequest {
-    int32 port = 1;
-    string ip = 2;
-}
-
-message ReplicateResponse {
-    // return the message with same group
-    bool status = 1;
-    int32 port = 2;
-    string ip = 3;
-}
-
-message AddStorageServerRequest {
+message AddServerRequest {
     int32 group_id = 1;
     string ip = 2;
     int32 port = 3;
-    int32 storage_server_id = 4;
 }
 
-message AddStorageServerResponse {
+message AddServerResponse {
     bool status = 1;
+    int32 storage_server_id = 2; // alovcate by the tracker server
+    string msg = 3;
 }
 
-message DeleteFileRequest {
-    string filename = 1;
-    string filepath = 2;
-    int32 group_id = 3;
-}
 
-message DeleteFileResponse {
-    bool status = 1;
-}
+
+
+
+// message AskFileOperationRequest {
+//     string operation = 1; 
+//     string filename = 2;
+//     int32 group_id = 3;
+//     string path = 4;
+// }
+
+// message AskFileOperationResponse {
+//     bool status = 1;
+//     string ip = 2;
+//     int32 port = 3;
+//     string time = 4;
+// }
+
+// message GetFileListRequest {
+//     string operation = 1; // null
+// }
+
+// message File {
+//     string file_name = 1;
+//     string file_path = 2;
+// }
+
+// message Group {
+//     int32 group_id = 1;
+//     repeated File files = 2;
+// }
+
+// message GetFileListResponse {
+//     repeated Group groups = 1;
+// }
+
+// message UpdateFileInfoRequest {
+//     string filename = 1;
+//     int32 group_id = 2;
+//     string filepath = 3;
+// }
+
+// message UpdateFileInfoResponse {
+//     bool status = 1;
+//     string time = 2;
+// }
+
+// message ReplicateRequest {
+//     int32 port = 1;
+//     string ip = 2;
+// }
+
+// message ReplicateResponse {
+//     // return the message with same group
+//     bool status = 1;
+//     int32 port = 2;
+//     string ip = 3;
+// }
+
+// message AddStorageServerRequest {
+//     int32 group_id = 1;
+//     string ip = 2;
+//     int32 port = 3;
+//     int32 storage_server_id = 4;
+// }
+
+// message AddStorageServerResponse {
+//     bool status = 1;
+// }
+
+// message DeleteFileRequest {
+//     string filename = 1;
+//     string filepath = 2;
+//     int32 group_id = 3;
+// }
+
+// message DeleteFileResponse {
+//     bool status = 1;
+// }

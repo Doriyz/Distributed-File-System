@@ -6,7 +6,9 @@ import APIs.TrackerServer_pb2 as TrackerServer__pb2
 
 
 class TrackerServerStub(object):
-    """Missing associated documentation comment in .proto file."""
+    """tracker server inly provide the service of add user, delete user, add storage server, delete storage server, heartbeat, ask file operation, get file list, update file info, replicate, add storage server, delete file
+
+    """
 
     def __init__(self, channel):
         """Constructor.
@@ -14,72 +16,41 @@ class TrackerServerStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.AskFileOperation = channel.unary_unary(
-                '/TrackerServer.TrackerServer/AskFileOperation',
-                request_serializer=TrackerServer__pb2.AskFileOperationRequest.SerializeToString,
-                response_deserializer=TrackerServer__pb2.AskFileOperationResponse.FromString,
+        self.AddUser = channel.unary_unary(
+                '/TrackerServer.TrackerServer/AddUser',
+                request_serializer=TrackerServer__pb2.AddUserRequest.SerializeToString,
+                response_deserializer=TrackerServer__pb2.AddUserResponse.FromString,
                 )
-        self.GetFileList = channel.unary_unary(
-                '/TrackerServer.TrackerServer/GetFileList',
-                request_serializer=TrackerServer__pb2.GetFileListRequest.SerializeToString,
-                response_deserializer=TrackerServer__pb2.GetFileListResponse.FromString,
+        self.DeleteUser = channel.unary_unary(
+                '/TrackerServer.TrackerServer/DeleteUser',
+                request_serializer=TrackerServer__pb2.DeleteUserRequest.SerializeToString,
+                response_deserializer=TrackerServer__pb2.DeleteUserResponse.FromString,
                 )
-        self.UpdateFileInfo = channel.unary_unary(
-                '/TrackerServer.TrackerServer/UpdateFileInfo',
-                request_serializer=TrackerServer__pb2.UpdateFileInfoRequest.SerializeToString,
-                response_deserializer=TrackerServer__pb2.UpdateFileInfoResponse.FromString,
-                )
-        self.Replicate = channel.unary_unary(
-                '/TrackerServer.TrackerServer/Replicate',
-                request_serializer=TrackerServer__pb2.ReplicateRequest.SerializeToString,
-                response_deserializer=TrackerServer__pb2.ReplicateResponse.FromString,
-                )
-        self.AddStorageServer = channel.unary_unary(
-                '/TrackerServer.TrackerServer/AddStorageServer',
-                request_serializer=TrackerServer__pb2.AddStorageServerRequest.SerializeToString,
-                response_deserializer=TrackerServer__pb2.AddStorageServerResponse.FromString,
-                )
-        self.DeleteFile = channel.unary_unary(
-                '/TrackerServer.TrackerServer/DeleteFile',
-                request_serializer=TrackerServer__pb2.DeleteFileRequest.SerializeToString,
-                response_deserializer=TrackerServer__pb2.DeleteFileResponse.FromString,
+        self.AddServer = channel.unary_unary(
+                '/TrackerServer.TrackerServer/AddServer',
+                request_serializer=TrackerServer__pb2.AddServerRequest.SerializeToString,
+                response_deserializer=TrackerServer__pb2.AddServerResponse.FromString,
                 )
 
 
 class TrackerServerServicer(object):
-    """Missing associated documentation comment in .proto file."""
+    """tracker server inly provide the service of add user, delete user, add storage server, delete storage server, heartbeat, ask file operation, get file list, update file info, replicate, add storage server, delete file
 
-    def AskFileOperation(self, request, context):
+    """
+
+    def AddUser(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetFileList(self, request, context):
+    def DeleteUser(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def UpdateFileInfo(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def Replicate(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def AddStorageServer(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def DeleteFile(self, request, context):
+    def AddServer(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -88,35 +59,20 @@ class TrackerServerServicer(object):
 
 def add_TrackerServerServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'AskFileOperation': grpc.unary_unary_rpc_method_handler(
-                    servicer.AskFileOperation,
-                    request_deserializer=TrackerServer__pb2.AskFileOperationRequest.FromString,
-                    response_serializer=TrackerServer__pb2.AskFileOperationResponse.SerializeToString,
+            'AddUser': grpc.unary_unary_rpc_method_handler(
+                    servicer.AddUser,
+                    request_deserializer=TrackerServer__pb2.AddUserRequest.FromString,
+                    response_serializer=TrackerServer__pb2.AddUserResponse.SerializeToString,
             ),
-            'GetFileList': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetFileList,
-                    request_deserializer=TrackerServer__pb2.GetFileListRequest.FromString,
-                    response_serializer=TrackerServer__pb2.GetFileListResponse.SerializeToString,
+            'DeleteUser': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteUser,
+                    request_deserializer=TrackerServer__pb2.DeleteUserRequest.FromString,
+                    response_serializer=TrackerServer__pb2.DeleteUserResponse.SerializeToString,
             ),
-            'UpdateFileInfo': grpc.unary_unary_rpc_method_handler(
-                    servicer.UpdateFileInfo,
-                    request_deserializer=TrackerServer__pb2.UpdateFileInfoRequest.FromString,
-                    response_serializer=TrackerServer__pb2.UpdateFileInfoResponse.SerializeToString,
-            ),
-            'Replicate': grpc.unary_unary_rpc_method_handler(
-                    servicer.Replicate,
-                    request_deserializer=TrackerServer__pb2.ReplicateRequest.FromString,
-                    response_serializer=TrackerServer__pb2.ReplicateResponse.SerializeToString,
-            ),
-            'AddStorageServer': grpc.unary_unary_rpc_method_handler(
-                    servicer.AddStorageServer,
-                    request_deserializer=TrackerServer__pb2.AddStorageServerRequest.FromString,
-                    response_serializer=TrackerServer__pb2.AddStorageServerResponse.SerializeToString,
-            ),
-            'DeleteFile': grpc.unary_unary_rpc_method_handler(
-                    servicer.DeleteFile,
-                    request_deserializer=TrackerServer__pb2.DeleteFileRequest.FromString,
-                    response_serializer=TrackerServer__pb2.DeleteFileResponse.SerializeToString,
+            'AddServer': grpc.unary_unary_rpc_method_handler(
+                    servicer.AddServer,
+                    request_deserializer=TrackerServer__pb2.AddServerRequest.FromString,
+                    response_serializer=TrackerServer__pb2.AddServerResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -126,10 +82,12 @@ def add_TrackerServerServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class TrackerServer(object):
-    """Missing associated documentation comment in .proto file."""
+    """tracker server inly provide the service of add user, delete user, add storage server, delete storage server, heartbeat, ask file operation, get file list, update file info, replicate, add storage server, delete file
+
+    """
 
     @staticmethod
-    def AskFileOperation(request,
+    def AddUser(request,
             target,
             options=(),
             channel_credentials=None,
@@ -139,14 +97,14 @@ class TrackerServer(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/TrackerServer.TrackerServer/AskFileOperation',
-            TrackerServer__pb2.AskFileOperationRequest.SerializeToString,
-            TrackerServer__pb2.AskFileOperationResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/TrackerServer.TrackerServer/AddUser',
+            TrackerServer__pb2.AddUserRequest.SerializeToString,
+            TrackerServer__pb2.AddUserResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def GetFileList(request,
+    def DeleteUser(request,
             target,
             options=(),
             channel_credentials=None,
@@ -156,14 +114,14 @@ class TrackerServer(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/TrackerServer.TrackerServer/GetFileList',
-            TrackerServer__pb2.GetFileListRequest.SerializeToString,
-            TrackerServer__pb2.GetFileListResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/TrackerServer.TrackerServer/DeleteUser',
+            TrackerServer__pb2.DeleteUserRequest.SerializeToString,
+            TrackerServer__pb2.DeleteUserResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def UpdateFileInfo(request,
+    def AddServer(request,
             target,
             options=(),
             channel_credentials=None,
@@ -173,59 +131,8 @@ class TrackerServer(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/TrackerServer.TrackerServer/UpdateFileInfo',
-            TrackerServer__pb2.UpdateFileInfoRequest.SerializeToString,
-            TrackerServer__pb2.UpdateFileInfoResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def Replicate(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/TrackerServer.TrackerServer/Replicate',
-            TrackerServer__pb2.ReplicateRequest.SerializeToString,
-            TrackerServer__pb2.ReplicateResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def AddStorageServer(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/TrackerServer.TrackerServer/AddStorageServer',
-            TrackerServer__pb2.AddStorageServerRequest.SerializeToString,
-            TrackerServer__pb2.AddStorageServerResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def DeleteFile(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/TrackerServer.TrackerServer/DeleteFile',
-            TrackerServer__pb2.DeleteFileRequest.SerializeToString,
-            TrackerServer__pb2.DeleteFileResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/TrackerServer.TrackerServer/AddServer',
+            TrackerServer__pb2.AddServerRequest.SerializeToString,
+            TrackerServer__pb2.AddServerResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

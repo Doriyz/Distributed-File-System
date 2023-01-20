@@ -24,11 +24,6 @@ class LockServerStub(object):
                 request_serializer=LockServer__pb2.UnlockRequest.SerializeToString,
                 response_deserializer=LockServer__pb2.UnlockResponse.FromString,
                 )
-        self.AddGroup = channel.unary_unary(
-                '/LockServer/AddGroup',
-                request_serializer=LockServer__pb2.AddGroupRequest.SerializeToString,
-                response_deserializer=LockServer__pb2.AddGroupResponse.FromString,
-                )
         self.AddACL = channel.unary_unary(
                 '/LockServer/AddACL',
                 request_serializer=LockServer__pb2.AddACLRequest.SerializeToString,
@@ -56,14 +51,9 @@ class LockServerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def AddGroup(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
     def AddACL(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """rpc AddGroup(AddGroupRequest) returns (AddGroupResponse) {}
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -86,11 +76,6 @@ def add_LockServerServicer_to_server(servicer, server):
                     servicer.Unlock,
                     request_deserializer=LockServer__pb2.UnlockRequest.FromString,
                     response_serializer=LockServer__pb2.UnlockResponse.SerializeToString,
-            ),
-            'AddGroup': grpc.unary_unary_rpc_method_handler(
-                    servicer.AddGroup,
-                    request_deserializer=LockServer__pb2.AddGroupRequest.FromString,
-                    response_serializer=LockServer__pb2.AddGroupResponse.SerializeToString,
             ),
             'AddACL': grpc.unary_unary_rpc_method_handler(
                     servicer.AddACL,
@@ -143,23 +128,6 @@ class LockServer(object):
         return grpc.experimental.unary_unary(request, target, '/LockServer/Unlock',
             LockServer__pb2.UnlockRequest.SerializeToString,
             LockServer__pb2.UnlockResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def AddGroup(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/LockServer/AddGroup',
-            LockServer__pb2.AddGroupRequest.SerializeToString,
-            LockServer__pb2.AddGroupResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

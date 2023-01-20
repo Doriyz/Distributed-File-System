@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10LockServer.proto\"c\n\x0bLockRequest\x12\x10\n\x08\x66ilename\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x10\n\x08group_id\x18\x03 \x01(\x05\x12\x0f\n\x07user_id\x18\x04 \x01(\x05\x12\x11\n\tlock_type\x18\x05 \x01(\x05\"\x1e\n\x0cLockResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\"e\n\rUnlockRequest\x12\x10\n\x08\x66ilename\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x10\n\x08group_id\x18\x03 \x01(\x05\x12\x0f\n\x07user_id\x18\x04 \x01(\x05\x12\x11\n\tlock_type\x18\x05 \x01(\x05\" \n\x0eUnlockResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\"#\n\x0f\x41\x64\x64GroupRequest\x12\x10\n\x08group_id\x18\x01 \x01(\x05\"\"\n\x10\x41\x64\x64GroupResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\"\x88\x01\n\rAddACLRequest\x12\x10\n\x08\x66ilename\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x10\n\x08group_id\x18\x03 \x01(\x05\x12\x0f\n\x07user_id\x18\x04 \x01(\x05\x12\x0f\n\x07is_read\x18\x05 \x01(\x08\x12\x10\n\x08is_write\x18\x06 \x01(\x08\x12\x11\n\tis_delete\x18\x07 \x01(\x08\" \n\x0e\x41\x64\x64\x41\x43LResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\"B\n\x0e\x41\x64\x64\x46ileRequest\x12\x10\n\x08\x66ilename\x18\x01 \x01(\t\x12\x0c\n\x04path\x18\x02 \x01(\t\x12\x10\n\x08group_id\x18\x03 \x01(\x05\"!\n\x0f\x41\x64\x64\x46ileResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\x32\xf0\x01\n\nLockServer\x12%\n\x04Lock\x12\x0c.LockRequest\x1a\r.LockResponse\"\x00\x12+\n\x06Unlock\x12\x0e.UnlockRequest\x1a\x0f.UnlockResponse\"\x00\x12\x31\n\x08\x41\x64\x64Group\x12\x10.AddGroupRequest\x1a\x11.AddGroupResponse\"\x00\x12+\n\x06\x41\x64\x64\x41\x43L\x12\x0e.AddACLRequest\x1a\x0f.AddACLResponse\"\x00\x12.\n\x07\x41\x64\x64\x46ile\x12\x0f.AddFileRequest\x1a\x10.AddFileResponse\"\x00\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10LockServer.proto\"V\n\x0bLockRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\x05\x12\x10\n\x08group_id\x18\x02 \x01(\x05\x12\x11\n\tfile_name\x18\x03 \x01(\t\x12\x11\n\tlock_type\x18\x04 \x01(\x05\"+\n\x0cLockResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\x12\x0b\n\x03msg\x18\x02 \x01(\t\"X\n\rUnlockRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\x05\x12\x10\n\x08group_id\x18\x02 \x01(\x05\x12\x11\n\tfile_name\x18\x03 \x01(\t\x12\x11\n\tlock_type\x18\x04 \x01(\x05\"-\n\x0eUnlockResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\x12\x0b\n\x03msg\x18\x02 \x01(\t\"{\n\rAddACLRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\x05\x12\x10\n\x08group_id\x18\x02 \x01(\x05\x12\x11\n\tfile_name\x18\x03 \x01(\t\x12\x0f\n\x07is_read\x18\x04 \x01(\x08\x12\x10\n\x08is_write\x18\x05 \x01(\x08\x12\x11\n\tis_delete\x18\x06 \x01(\x08\"-\n\x0e\x41\x64\x64\x41\x43LResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\x12\x0b\n\x03msg\x18\x02 \x01(\t\"F\n\x0e\x41\x64\x64\x46ileRequest\x12\x0f\n\x07user_id\x18\x01 \x01(\x05\x12\x10\n\x08group_id\x18\x02 \x01(\x05\x12\x11\n\tfile_name\x18\x03 \x01(\t\".\n\x0f\x41\x64\x64\x46ileResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\x12\x0b\n\x03msg\x18\x02 \x01(\t2\xbd\x01\n\nLockServer\x12%\n\x04Lock\x12\x0c.LockRequest\x1a\r.LockResponse\"\x00\x12+\n\x06Unlock\x12\x0e.UnlockRequest\x1a\x0f.UnlockResponse\"\x00\x12+\n\x06\x41\x64\x64\x41\x43L\x12\x0e.AddACLRequest\x1a\x0f.AddACLResponse\"\x00\x12.\n\x07\x41\x64\x64\x46ile\x12\x0f.AddFileRequest\x1a\x10.AddFileResponse\"\x00\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'LockServer_pb2', globals())
@@ -21,25 +21,21 @@ if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
   _LOCKREQUEST._serialized_start=20
-  _LOCKREQUEST._serialized_end=119
-  _LOCKRESPONSE._serialized_start=121
+  _LOCKREQUEST._serialized_end=106
+  _LOCKRESPONSE._serialized_start=108
   _LOCKRESPONSE._serialized_end=151
   _UNLOCKREQUEST._serialized_start=153
-  _UNLOCKREQUEST._serialized_end=254
-  _UNLOCKRESPONSE._serialized_start=256
+  _UNLOCKREQUEST._serialized_end=241
+  _UNLOCKRESPONSE._serialized_start=243
   _UNLOCKRESPONSE._serialized_end=288
-  _ADDGROUPREQUEST._serialized_start=290
-  _ADDGROUPREQUEST._serialized_end=325
-  _ADDGROUPRESPONSE._serialized_start=327
-  _ADDGROUPRESPONSE._serialized_end=361
-  _ADDACLREQUEST._serialized_start=364
-  _ADDACLREQUEST._serialized_end=500
-  _ADDACLRESPONSE._serialized_start=502
-  _ADDACLRESPONSE._serialized_end=534
-  _ADDFILEREQUEST._serialized_start=536
-  _ADDFILEREQUEST._serialized_end=602
-  _ADDFILERESPONSE._serialized_start=604
-  _ADDFILERESPONSE._serialized_end=637
-  _LOCKSERVER._serialized_start=640
-  _LOCKSERVER._serialized_end=880
+  _ADDACLREQUEST._serialized_start=290
+  _ADDACLREQUEST._serialized_end=413
+  _ADDACLRESPONSE._serialized_start=415
+  _ADDACLRESPONSE._serialized_end=460
+  _ADDFILEREQUEST._serialized_start=462
+  _ADDFILEREQUEST._serialized_end=532
+  _ADDFILERESPONSE._serialized_start=534
+  _ADDFILERESPONSE._serialized_end=580
+  _LOCKSERVER._serialized_start=583
+  _LOCKSERVER._serialized_end=772
 # @@protoc_insertion_point(module_scope)

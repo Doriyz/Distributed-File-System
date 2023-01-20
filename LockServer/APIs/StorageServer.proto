@@ -5,60 +5,68 @@ service StorageServer {
     rpc Delete(DeleteRequest) returns (DeleteResponse) {}
     rpc Read(ReadRequest) returns (ReadResponse) {}
     rpc Write(WriteRequest) returns (WriteResponse) {}
+    rpc List(ListRequest) returns (ListResponse) {}
 
-    rpc GetFileList(GetFileListRequest) returns (GetFileListResponse) {}
+    rpc GetTime(GetTimeRequest) returns (GetTimeResponse) {} // get the last update time of file
 }
 
 message CreateRequest {
-    string path = 1;
-    string filename = 2;
-    string content = 3;
+    int32 user_id = 1;
+    string file_name = 2;
+
 }
 
 message CreateResponse {
     bool status = 1;
+    string msg = 2;
 }
 
 message DeleteRequest {
-    string path = 1;
-    string filename = 2;
+    int32 user_id = 1;
+    string file_name = 2;
 }
 
 message DeleteResponse {
     bool status = 1;
+    string msg = 2;
 }
 
 message ReadRequest {
-    string path = 1;
-    string filename = 2;
+    int32 user_id = 1;
+    string file_name = 2;
 }
 
 message ReadResponse {
     bool status = 1;
     string content = 2;
-    string update_time = 3;
+    string msg = 3;
 }
 
 message WriteRequest {
-    string path = 1;
-    string filename = 2;
+    int32 user_id = 1;
+    string file_name = 2;
     string content = 3;
     int32 mode = 4; // 0: overwrite, 1: append
 }
 
 message WriteResponse {
     bool status = 1;
+    string msg = 2;
 }
 
-
-message GetFileListRequest {
-    string path = 1;
+message ListRequest {
+    int32 user_id = 1;
 }
 
-message GetFileListResponse {
-    message File {
-        string filename = 1;
-        string path = 2;
-    }
-    repeated File file_list = 1;
+message ListResponse {
+    repeated string file_name = 1;
+}
+
+message GetTimeRequest {
+    int32 user_id = 1;
+    string file_name = 2;
+}
+
+message GetTimeResponse {
+    string file_time = 1;
 }

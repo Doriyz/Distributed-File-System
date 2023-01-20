@@ -15,87 +15,108 @@ import sys
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import APIs.setting as setting
 
-TrackerServer_PORT = setting.TrackerServer_PORT
-TrackerServer_IP = setting.TrackerServer_IP
-LockServer_PORT = setting.LockServer_PORT
-LockServer_IP = setting.LockServer_IP
+
 
 import grpc
 import APIs.TrackerServer_pb2 as TS_pb2
 import APIs.TrackerServer_pb2_grpc as TS_pb2_grpc
 import APIs.LockServer_pb2 as LS_pb2
 import APIs.LockServer_pb2_grpc as LS_pb2_grpc
+import APIs.StorageServer_pb2 as SS_pb2
+import APIs.StorageServer_pb2_grpc as SS_pb2_grpc
 
+# class file_info:
+#     def __init__(self, file_name, group_id):
+#         self.file_name = file_name
+#         self.group_id = group_id
 
-# TrackerServer_PORT = 5000
-hostname = socket.gethostname()
-ip_address = socket.gethostbyname(hostname)
+# class group_info:
+#     def __init__(self, group_id):
+#         self.group_id = group_id
+#         self.file_info = []
 
-
-class file_info:
-    def __init__(self, file_name, file_path, group_id):
-        self.file_name = file_name
-        self.file_path = file_path
-        self.group_id = group_id
-        self.update_time = tm.time()
-
-class group_info:
-    def __init__(self, group_id):
-        self.group_id = group_id
-        self.file_info = []
-
-class storage_server_info:
-    def __init__(self, storage_server_id, ip, port, group_id):
-        self.storage_server_id = storage_server_id
+class server_info:
+    def __init__(self, server_id, ip, port, group_id):
+        self.server_id = server_id
         self.ip = ip
         self.port = port
         self.group_id = group_id
         self.init = 0
 
-def timeTransfer(t):
-    # input:time.time()
-    # output: string
-    t_obj = datetime.fromtimestamp(t)
-    return t_obj.strftime('%Y-%m-%d %H:%M:%S')
+# def timeTransfer(t):
+#     # input:time.time()
+#     # output: string
+#     t_obj = datetime.fromtimestamp(t)
+#     return t_obj.strftime('%Y-%m-%d %H:%M:%S')
 
 class Servicer(TS_pb2_grpc.TrackerServerServicer):
     def __init__(self):
-        self.GROUP_INFO = []
-        self.FILE_INFO = []
-        self.STORAGE_SERVER_INFO = []
-        # build the directory to store server data
+        # self.GROUP_INFO = []
+        # self.FILE_INFO = []
+        self.ts_port = setting.TrackerServer_PORT
+        self.ts_ip = setting.TrackerServer_IP
+        self.ls_port = setting.LockServer_PORT
+        self.ls_ip = setting.LockServer_IP
+
+        self.server_info = {} # index: server_id, value: server_info
+        self.user_info = {} # index: user_id, value: group_id
+        self.max_server_id = 0 # increase when add server
+        self.max_user_id = 0 # increase when add user
         self.ROOT_PATH = './DATA/'
         self.SERVER_FILE_NAME = 'server_info.txt'
-        self.GROUP_FILE_NAME = 'group_info.txt'
+        self.GROUP_FILE_NAME = 'user_info.txt'
         if not os.path.exists('./DATA/'):
             os.mkdir('./DATA/')
-            print(f'[INIT] Successfully build the tracker server data directory.')
-        print("[INIT] Tracker Server is ready to serve.")
+            print(f'[INIT] Create DATA folder.')
 
-    # check if group exist by g_id
-    def check_group_ip(self, g_id):
-        for group in self.GROUP_INFO:
-            if(group.group_id == g_id):
-                return True
-        return False
+    def check_heartbeat(self):
+        # check if lock server is alive
+        try:
+            channel = grpc.insecure_channel(f'{self.ls_ip}:{self.ls_port}')
+            stub = LS_pb2_grpc.LockServerStub(channel)
+            response = stub.HeartBeat(LS_pb2.HeartBeatRequest())
+            print(f'[CHECK] Lock Server is alive.')
+        except:
+            print(f'[CHECK] Lock Server is dead.')
+        # check if storage server is alive
+        for server in self.server_info:
+            ip = self.server_info[server].ip
+            port = self.server_info[server].port
+            try:
+                channel = grpc.insecure_channel(f'{ip}:{port}')
+                stub = SS_pb2_grpc.StorageServerStub(channel)
+                response = stub.HeartBeat(SS_pb2.HeartBeatRequest())
+                print(f'[CHECK] Storage Server {server} is alive.')
+            except:
+                print(f'[CHECK] Storage Server {server} is dead.')
+                self.server_info.pop(server)
+                print(f'[CHECK] Remove Storage Server {server} from server_info.')
+                self.update_server_info_file()
+
+    # # check if group exist by g_id
+    # def check_group_ip(self, g_id):
+    #     for group in self.GROUP_INFO:
+    #         if(group.group_id == g_id):
+    #             return True
+    #     return False
 
     # update server info into file
     def update_server_info_file(self):
         with open(self.ROOT_PATH + self.SERVER_FILE_NAME, 'w') as f:
-            f.write('IP --- PORT --- GROUP_ID' + '\n')
+            f.write('Server ID --    IP    -- Port --- Group ID' + '\n')
             for server in self.STORAGE_SERVER_INFO:
-                f.write(str(server.ip) + ' ' + str(server.port) + ' ' + str(server.group_id) + '\n')
-        print(f'[UPDATE SERVER INFO FILE] SUCCESS')
+                f.write('   ' + str(server.ip) + '    -- ' + str(server.port) + ' --  ' + str(server.group_id) + '\n')
+        print(f'[SUCCESS] Update server info file.')
 
-    # update group info into file
-    def update_group_info_file(self):
-        with open(self.ROOT_PATH + self.GROUP_FILE_NAME, 'w') as f:
-            f.write('GROUP_ID --- FILE_PATH --- FILE_NAME --- UPDATE_TIME\n')
-            for group in self.GROUP_INFO:
-                for file in group.file_info:
-                    update_time = timeTransfer(file.update_time)
-                    f.write(str(file.group_id) + ' ' + file.file_path + ' ' + str(file.file_name) + ' ' + update_time + '\n')
-        print(f'[UPDATE GROUP INFO FILE] Successful update group info file.')
+    # # update group info into file
+    # def update_group_info_file(self):
+    #     with open(self.ROOT_PATH + self.GROUP_FILE_NAME, 'w') as f:
+    #         f.write('GROUP_ID --- FILE_PATH --- FILE_NAME --- UPDATE_TIME\n')
+    #         for group in self.GROUP_INFO:
+    #             for file in group.file_info:
+    #                 update_time = timeTransfer(file.update_time)
+    #                 f.write(str(file.group_id) + ' ' + file.file_path + ' ' + str(file.file_name) + ' ' + update_time + '\n')
+    #     print(f'[UPDATE GROUP INFO FILE] Successful update group info file.')
 
 
     ##### proto service #####
@@ -257,10 +278,12 @@ def run():
     TS_pb2_grpc.add_TrackerServerServicer_to_server(servicer, server)
     server.add_insecure_port('[::]:' + str(setting.TrackerServer_PORT))
     server.start()
-    print(f'[START] Tracker server is running on port: ' + str(setting.TrackerServer_PORT))
+    print(f'[INIT] Tracker server is running on port: ' + str(setting.TrackerServer_PORT))
     try:
         while True:
-            tm.sleep(86400) # one day
+            tm.sleep(100) 
+            # check the heartbeat of storage server
+            servicer.check_heartbeat()
     except KeyboardInterrupt:
         server.stop(0)
         print(f'[TRACKER SERVER] STOPPED')

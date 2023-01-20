@@ -34,10 +34,15 @@ class StorageServerStub(object):
                 request_serializer=StorageServer__pb2.WriteRequest.SerializeToString,
                 response_deserializer=StorageServer__pb2.WriteResponse.FromString,
                 )
-        self.GetFileList = channel.unary_unary(
-                '/StorageServer/GetFileList',
-                request_serializer=StorageServer__pb2.GetFileListRequest.SerializeToString,
-                response_deserializer=StorageServer__pb2.GetFileListResponse.FromString,
+        self.List = channel.unary_unary(
+                '/StorageServer/List',
+                request_serializer=StorageServer__pb2.ListRequest.SerializeToString,
+                response_deserializer=StorageServer__pb2.ListResponse.FromString,
+                )
+        self.GetTime = channel.unary_unary(
+                '/StorageServer/GetTime',
+                request_serializer=StorageServer__pb2.GetTimeRequest.SerializeToString,
+                response_deserializer=StorageServer__pb2.GetTimeResponse.FromString,
                 )
 
 
@@ -68,7 +73,13 @@ class StorageServerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetFileList(self, request, context):
+    def List(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetTime(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -97,10 +108,15 @@ def add_StorageServerServicer_to_server(servicer, server):
                     request_deserializer=StorageServer__pb2.WriteRequest.FromString,
                     response_serializer=StorageServer__pb2.WriteResponse.SerializeToString,
             ),
-            'GetFileList': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetFileList,
-                    request_deserializer=StorageServer__pb2.GetFileListRequest.FromString,
-                    response_serializer=StorageServer__pb2.GetFileListResponse.SerializeToString,
+            'List': grpc.unary_unary_rpc_method_handler(
+                    servicer.List,
+                    request_deserializer=StorageServer__pb2.ListRequest.FromString,
+                    response_serializer=StorageServer__pb2.ListResponse.SerializeToString,
+            ),
+            'GetTime': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetTime,
+                    request_deserializer=StorageServer__pb2.GetTimeRequest.FromString,
+                    response_serializer=StorageServer__pb2.GetTimeResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -181,7 +197,7 @@ class StorageServer(object):
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def GetFileList(request,
+    def List(request,
             target,
             options=(),
             channel_credentials=None,
@@ -191,8 +207,25 @@ class StorageServer(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/StorageServer/GetFileList',
-            StorageServer__pb2.GetFileListRequest.SerializeToString,
-            StorageServer__pb2.GetFileListResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/StorageServer/List',
+            StorageServer__pb2.ListRequest.SerializeToString,
+            StorageServer__pb2.ListResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetTime(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/StorageServer/GetTime',
+            StorageServer__pb2.GetTimeRequest.SerializeToString,
+            StorageServer__pb2.GetTimeResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
